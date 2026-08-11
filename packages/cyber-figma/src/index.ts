@@ -6,6 +6,8 @@
  * `src/testing/` is deliberately absent: it imports vitest, so it is reached by
  * relative path from a domain's specs rather than through the published entry.
  */
+export * from './activity-logs/api.js'
+export * from './activity-logs/gateway.js'
 export * from './analytics/api.js'
 export * from './analytics/gateway.js'
 export * from './cli-error.js'

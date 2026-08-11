@@ -1,5 +1,6 @@
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import type { Command } from 'commander'
+import { activityLogDomain } from './activity-logs/index.js'
 import { analyticsDomain } from './analytics/index.js'
 import { createClient, type FigmaClient } from './client.js'
 import { fileDomain } from './files/index.js'
@@ -38,7 +39,7 @@ export function defineDomain<Api>(module: DomainModule<Api>): AnyDomain {
  * Domain pods: add your module here, and add your `api.js` / `gateway.js`
  * exports to index.ts. Nothing else in the spine changes.
  */
-export const DOMAINS: AnyDomain[] = [analyticsDomain, fileDomain, projectDomain]
+export const DOMAINS: AnyDomain[] = [activityLogDomain, analyticsDomain, fileDomain, projectDomain]
 
 export type RuntimeContext = {
 	client: FigmaClient
