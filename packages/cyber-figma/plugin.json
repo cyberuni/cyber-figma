@@ -1,0 +1,11 @@
+{
+	"$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+	"name": "cyber-figma",
+	"version": "0.0.0",
+	"description": "Figma CLI and MCP server for AI agents",
+	"author": { "name": "unional" },
+	"homepage": "https://github.com/cyberuni/cyber-figma",
+	"repository": "https://github.com/cyberuni/cyber-figma.git",
+	"license": "MIT",
+	"keywords": ["figma", "mcp", "cli", "agent", "design"]
+}
