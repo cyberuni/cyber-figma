@@ -200,6 +200,7 @@ already knows this (`advanceWith`). The hint is wrong for those two models, so
 this domain prints its own `--after` next step instead of calling it. A spine
 fix would be to derive the flag from the model, the way `addPaginationOptions`
 already does.
+
 ## oembed
 
 **Endpoints covered — the whole oEmbed tag (1 endpoint), no skips.**
