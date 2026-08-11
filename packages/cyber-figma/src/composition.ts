@@ -10,6 +10,7 @@ import { discoveryDomain } from './discovery/index.js'
 import { fileDomain } from './files/index.js'
 import { LIBRARY_DOMAINS } from './library/index.js'
 import { oembedDomain } from './oembed/index.js'
+import { paymentDomain } from './payments/index.js'
 import { projectDomain } from './projects/index.js'
 import { userDomain } from './users/index.js'
 import { variableDomain } from './variables/index.js'
@@ -58,6 +59,7 @@ export const DOMAINS: AnyDomain[] = [
 	fileDomain,
 	oembedDomain,
 	...LIBRARY_DOMAINS,
+	paymentDomain,
 	projectDomain,
 	userDomain,
 	variableDomain,
