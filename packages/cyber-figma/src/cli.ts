@@ -5,8 +5,10 @@ import { installUsageErrors, isCleanCommanderExit } from './cli-usage.js'
 import { type FigmaAuthMode, parseAuthMode, setAuthModeOverride, setTokenOverride } from './client.js'
 import { createRuntimeContext, DOMAINS, type RuntimeContext, registerCliCommands } from './composition.js'
 import { DESCRIPTION, runDefaultCommand } from './default-command.js'
+import { mcpCommand } from './mcp-cli.js'
 import { selectFormat } from './output.js'
-import { setTeamOverride } from './scope.js'
+import { readRepoConfig } from './repo-config.js'
+import { setRepoConfigTeamId, setTeamOverride } from './scope.js'
 import { VERSION } from './version.js'
 
 const program = new Command()
@@ -50,17 +52,21 @@ program
 			'  cyber-figma <resource> --help     # concise per-resource reference',
 		].join('\n'),
 	)
-	.hook('preAction', () => {
+	.hook('preAction', async () => {
 		const opts = program.opts<{ token?: string; team?: string; authMode?: string }>()
 		if (opts.token) setTokenOverride(opts.token)
 		if (opts.team) setTeamOverride(opts.team)
 		if (opts.authMode) setAuthModeOverride(parseAuthMode(opts.authMode) as FigmaAuthMode)
+		// The repo's own config is the last-resort team id, so a checked-out repo
+		// is self-describing. A malformed one is reported rather than ignored.
+		setRepoConfigTeamId((await readRepoConfig(process.cwd()))?.team_id)
 	})
 	.action(() => {
 		runDefaultCommand({ domains: DOMAINS })
 	})
 
 registerCliCommands(program, getRuntimeContext)
+program.addCommand(mcpCommand(getRuntimeContext))
 installUsageErrors(program)
 
 program.parseAsync(process.argv).catch((err: unknown) => {

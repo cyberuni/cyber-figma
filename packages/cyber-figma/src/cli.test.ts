@@ -1,4 +1,7 @@
 import { execFile } from 'node:child_process'
+import { mkdir, mkdtemp, writeFile } from 'node:fs/promises'
+import { tmpdir } from 'node:os'
+import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { promisify } from 'node:util'
 import { describe, expect, it } from 'vitest'
@@ -10,10 +13,10 @@ const CLI = fileURLToPath(new URL('./cli.ts', import.meta.url))
 const TSX = fileURLToPath(new URL('../node_modules/.bin/tsx', import.meta.url))
 
 /** Run the real CLI the way an agent would, with a clean credential environment. */
-async function cli(args: string[], env: Record<string, string> = {}) {
+async function cli(args: string[], env: Record<string, string> = {}, cwd?: string) {
 	const child = { ...process.env, FIGMA_ACCESS_TOKEN: '', FIGMA_TOKEN: '', FIGMA_TEAM_ID: '', FIGMA_TEAM: '', ...env }
 	try {
-		const { stdout, stderr } = await run(TSX, [CLI, ...args], { env: child })
+		const { stdout, stderr } = await run(TSX, [CLI, ...args], { env: child, ...(cwd && { cwd }) })
 		return { code: 0, stdout, stderr }
 	} catch (error) {
 		const failure = error as { code?: number; stdout?: string; stderr?: string }
@@ -79,5 +82,35 @@ describe('cyber-figma cli', () => {
 		expect(code).toBe(0)
 		expect(stdout).toContain('--auth-mode')
 		expect(stdout).toContain('Exit codes')
+	})
+})
+
+describe('cyber-figma mcp', () => {
+	it('is offered as a subcommand so an MCP client needs no path into dist', async () => {
+		const { stdout } = await cli(['--help'])
+		expect(stdout).toContain('mcp')
+	})
+})
+
+describe('repo config', () => {
+	it('reports a malformed repo config instead of silently ignoring it', async () => {
+		const repo = await mkdtemp(join(tmpdir(), 'cyber-figma-cli-'))
+		await mkdir(join(repo, '.agents'), { recursive: true })
+		await writeFile(join(repo, '.agents', 'cyber-figma.json'), '{ not json')
+
+		const { code, stderr } = await cli([], {}, repo)
+
+		expect(code).toBe(1)
+		expect(stderr).toContain('cyber-figma.json')
+	})
+
+	it('takes the team id from the repo config when nothing else supplies one', async () => {
+		const repo = await mkdtemp(join(tmpdir(), 'cyber-figma-cli-'))
+		await mkdir(join(repo, '.agents'), { recursive: true })
+		await writeFile(join(repo, '.agents', 'cyber-figma.json'), JSON.stringify({ schema_version: 1, team_id: '4321' }))
+
+		const { stdout } = await cli(['--json'], {}, repo)
+
+		expect(JSON.parse(stdout).team).toBe('4321')
 	})
 })
