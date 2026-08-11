@@ -23,6 +23,10 @@ export default defineConfig({
 						{ label: 'Authentication', link: '/authentication/' },
 					],
 				},
+				{
+					label: 'Reference',
+					items: [{ autogenerate: { directory: 'reference' } }],
+				},
 			],
 			editLink: {
 				baseUrl: 'https://github.com/cyberuni/cyber-figma/edit/main/apps/web/',
