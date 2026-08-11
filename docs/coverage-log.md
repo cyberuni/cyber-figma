@@ -4,6 +4,110 @@ What each domain pod shipped, endpoint by endpoint. One section per domain,
 alphabetical. Sections are additive — resolve a conflict here by keeping every
 side's section.
 
+## activity-logs
+
+**Endpoints covered — the one endpoint of the Activity Logs tag, no skips.**
+
+| Endpoint | Tier | CLI | MCP tool |
+| --- | --- | --- | --- |
+| `GET /v1/activity_logs` | 3 | `cyber-figma activity-log list [--events] [--start-time] [--end-time] [--limit] [--order]` | `figma_activity_log_list` |
+
+**Plan and auth:** Enterprise, **org admins only**, and **not reachable with a
+personal access token** — the spec lists org OAuth 2 (scope
+`org:activity_log_read`) and a plan access token, and nothing else. The command
+and tool descriptions both say so, and the spine turns a 401/403 on this path
+into exit code 7 with the requirement named.
+
+### Decisions worth knowing
+
+- **Declared `model: 'none'`.** The response carries `meta.cursor` and
+  `meta.next_page`, and Figma documents **no `cursor` request parameter** to
+  send the cursor back to. Declaring `row_cursor` would have advertised a
+  `--cursor` flag that silently re-requests page one forever. Instead the result
+  carries `has_more` and `cursor`, and text output says outright that the way
+  forward is a narrower `--start-time`/`--end-time` window with `--order`.
+- **Times are parsed, not just forwarded.** Figma takes Unix seconds; nobody
+  writes those by hand. `--start-time`/`--end-time` accept Unix seconds, an ISO
+  8601 instant, or a `YYYY-MM-DD` date (midnight UTC), and a window that ends
+  before it starts is refused before the request is spent.
+
+**Testable without Enterprise?** No. The acceptance specs run fully against a
+double; the system suite needs `FIGMA_ACTIVITY_LOGS_SYSTEM_TEST` plus an
+Enterprise org-admin credential in `plan` or `oauth` mode, and skips otherwise.
+
+## ai-usage
+
+**Endpoints covered — the one endpoint of the AI Usage tag, no skips.**
+
+| Endpoint | Tier | CLI | MCP tool |
+| --- | --- | --- | --- |
+| `GET /v1/ai_usage/daily` | 3 | `cyber-figma ai-usage daily --start-date <d> --end-date <d> [--user-email]` | `figma_ai_usage_daily` |
+
+**Plan and auth:** Enterprise, **org admins only**, **plan access token only**
+(scope `org:ai_metering_usage_read`) — only an admin can mint one, and no PAT
+will do.
+
+### Decisions worth knowing
+
+- **Pagination is `next_cursor`** (`{ rows, next_cursor, has_next_page }`, where
+  `next_cursor` is the **empty string** once exhausted), with `defaultPageSize`
+  and `maxPageSize` both 1000, so `--page-size` is capped at the documented
+  ceiling rather than being rejected by Figma.
+- **The window is validated locally:** both bounds required, `YYYY-MM-DD`, no
+  earlier than **2025-12-01** (Figma has no data before it), and the end not
+  before the start. Comparison is lexicographic on the date strings, so no
+  timezone is involved.
+- Text output totals seat and plan credits over the rows shown, and the
+  description states the **5–6 hour data lag** that makes the current day
+  unreliable.
+
+**Testable without Enterprise?** No. Gated behind
+`FIGMA_AI_USAGE_SYSTEM_TEST` plus `FIGMA_AUTH_MODE=plan`; optional
+`FIGMA_AI_USAGE_START_DATE` / `FIGMA_AI_USAGE_END_DATE` point at a window the
+plan has data in.
+
+## analytics
+
+**Endpoints covered — all six of the Library Analytics tag, no skips.**
+
+| Endpoint | Tier | CLI | MCP tool |
+| --- | --- | --- | --- |
+| `GET /v1/analytics/libraries/{key}/component/actions` | 3 | `cyber-figma analytics component-actions <file> --group-by component\|team` | `figma_analytics_component_actions` |
+| `GET /v1/analytics/libraries/{key}/component/usages` | 3 | `cyber-figma analytics component-usages <file> --group-by component\|file` | `figma_analytics_component_usages` |
+| `GET /v1/analytics/libraries/{key}/style/actions` | 3 | `cyber-figma analytics style-actions <file> --group-by style\|team` | `figma_analytics_style_actions` |
+| `GET /v1/analytics/libraries/{key}/style/usages` | 3 | `cyber-figma analytics style-usages <file> --group-by style\|file` | `figma_analytics_style_usages` |
+| `GET /v1/analytics/libraries/{key}/variable/actions` | 3 | `cyber-figma analytics variable-actions <file> --group-by variable\|team` | `figma_analytics_variable_actions` |
+| `GET /v1/analytics/libraries/{key}/variable/usages` | 3 | `cyber-figma analytics variable-usages <file> --group-by variable\|file` | `figma_analytics_variable_usages` |
+
+**Plan and auth:** Enterprise, scope `library_analytics:read`. Unlike the rest of
+this pod it works with a personal access token, a plan token, **or** OAuth — so
+it is the one domain here an Enterprise contributor can promote to a live run
+without minting a special credential.
+
+### Decisions worth knowing
+
+- **Six commands, not one with flags.** The `actions` half is a weekly time
+  series that takes `--start-date`/`--end-date`; the `usages` half is a snapshot
+  that takes no date range at all. One command would have had to advertise date
+  flags that half the endpoints ignore.
+- **`group_by` is required and its legal values differ per pair** — the asset
+  itself plus `team` for actions, the asset itself plus `file` for usages. Both
+  the CLI choices and the MCP enum come from one `groupByChoices()`, so a client
+  reading the tool schema is told the two dimensions that endpoint really has.
+- **Pagination is `row_cursor`** with no page-size parameter declared, because
+  the endpoints have none — the 1000-row ceiling is Figma's, not the caller's.
+- Rows differ in shape per grouping dimension, so the text table derives its
+  columns from the row Figma actually sent instead of a fixed list that would
+  drop half of them.
+- The command description states the two semantics that mislead people: data is
+  recomputed **daily at 00:00 UTC**, and rows you lack permission for come back
+  named `Team not visible` / `File not visible` rather than being dropped, so
+  they must not be aggregated as one entity.
+
+**Testable without Enterprise?** No — but the system suite also needs the key of
+a published **library** file (`FIGMA_ANALYTICS_LIBRARY_FILE_KEY`), and skips
+without it.
+
 ## comments
 
 **Endpoints covered — all 6 (Comments 3, Comment Reactions 3):**
@@ -142,6 +246,65 @@ FIGMA_SYSTEM_TEST=1 FIGMA_ACCESS_TOKEN=<pat> \
 
 The write specs create their links and delete them again, including on failure,
 so a real file is left as it was found.
+
+## developer-logs
+
+**Endpoints covered — the one endpoint of the Developer Logs tag, no skips.**
+
+| Endpoint | Tier | CLI | MCP tool |
+| --- | --- | --- | --- |
+| `POST /v1/developer_logs` | 3 | `cyber-figma developer-log list [--token-type] [--filter-token] [--token-name] [--user-email] [--ip-address] [--event-source] [--date-range]` | `figma_developer_log_list` |
+
+**Plan and auth:** Enterprise **plus the Governance+ add-on**, org admins only,
+and **plan access token only** (scope `org:developer_log_read`). Records are
+retained **30 days**; nothing older exists to ask for.
+
+### Decisions worth knowing
+
+- **It is a read that uses `POST`.** The filters go in the body — and so do
+  `cursor` and `limit`. The gateway merges the pagination parameters into the
+  body, and the test double serves pages from the cursor it finds **in the
+  body**, so putting them in the query string fails here exactly as it would
+  against Figma.
+- **`--filter-token`, not `--token`.** `--token` is the global credential flag;
+  this filter matches the token value recorded in the log. The flag description
+  says it is a secret and points at `--token-name` instead.
+- `date_range` is validated against the three values Figma offers, and the error
+  names the 30-day retention that makes a longer one impossible.
+
+**Testable without Enterprise?** No. Gated behind
+`FIGMA_DEVELOPER_LOGS_SYSTEM_TEST` plus `FIGMA_AUTH_MODE=plan`.
+
+## discovery
+
+**Endpoints covered — the one Discovery endpoint, no skips.**
+
+| Endpoint | Tier | CLI | MCP tool |
+| --- | --- | --- | --- |
+| `GET /v1/discovery` | 2 | `cyber-figma discovery text-events --start-date <instant> [--end-date] [--file-ttl]` | `figma_discovery_text_events` |
+
+**Plan and auth:** Enterprise **plus Governance+**, org admins only, and **OAuth
+2 only** (scope `org:discovery_read`). Neither a personal nor a plan access
+token can reach it.
+
+### Decisions worth knowing
+
+- **Absent from Figma's OpenAPI spec.** Its request and response types are
+  written by hand in `discovery/gateway.ts` from the prose docs, with the
+  omission called out in the file — nothing here can come from
+  `@figma/rest-api-spec`.
+- **It returns links, not events.** One S3 JSON file per requested hour. The api
+  normalizes the hour-keyed map into `{ hours: [{ hour, urls }], total_urls }`,
+  and text output says outright that the URLs are the answer and must be
+  fetched, so an empty-looking table is not read as "no events".
+- **The window rules are checked before the request:** a start at least **one
+  hour in the past**, a span of **at most 24 hours**, and a link lifetime of
+  60–86400 seconds. Discovery's own error table describes both 401 and 403 as
+  "the OAuth token is invalid", so an invalid window would otherwise come back
+  looking like an auth failure.
+
+**Testable without Enterprise?** No. Gated behind `FIGMA_DISCOVERY_SYSTEM_TEST`
+plus `FIGMA_AUTH_MODE=oauth`, with an optional explicit window.
 
 ## files
 
@@ -290,6 +453,39 @@ already does.
 **Testable without Enterprise: yes.** No plan gate; scope `file_metadata:read`.
 The live suite needs `FIGMA_OEMBED_URL` (a file or published Make URL the
 credential can see) and a personal or OAuth credential.
+
+## payments
+
+**Endpoints covered — the one Payments endpoint, no skips.**
+
+| Endpoint | Tier | CLI | MCP tool |
+| --- | --- | --- | --- |
+| `GET /v1/payments` | 3 | `cyber-figma payment get [--plugin-payment-token] [--user-id] [--community-file-id\|--plugin-id\|--widget-id]` | `figma_payment_get` |
+
+**Plan and auth:** no plan gate — but **personal access token only**. The docs
+state plainly that the Payments API does not support OAuth 2, and the spec lists
+no plan-token support either. You can only query a plugin, widget, or Community
+file **you own**.
+
+### Decisions worth knowing
+
+- **Two usage modes, both named in one error.** Either a
+  `plugin_payment_token` (from `getPluginPaymentTokenAsync`, used inside a
+  plugin or widget) or a `user_id` plus **exactly one** resource id. A malformed
+  mix is refused before the request, naming both modes and the ownership rule.
+- **The credential trap gets an attached hint.** Figma answers the wrong
+  credential with an ordinary 401/403 that cannot say why, so when the client is
+  in `oauth` or `plan` mode the gateway attaches a hint explaining that only a
+  PAT works here — an attached hint outranks the spine's derived one. On a
+  personal access token the spine's own 403 explanation is the better one and is
+  left alone.
+- Text output flags `TRIAL` explicitly, since it means "inside the trial period
+  of a subscription", not "has paid".
+
+**Testable without Enterprise?** Yes in principle — no plan gate — but only by
+someone who owns a published plugin, widget, or Community file. The system suite
+needs `FIGMA_PAYMENTS_PLUGIN_ID` and `FIGMA_PAYMENTS_USER_ID` and skips without
+them.
 
 ## projects
 
