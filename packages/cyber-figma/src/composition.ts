@@ -6,6 +6,7 @@ import { createClient, type FigmaClient } from './client.js'
 import { devResourceDomain } from './dev-resources/index.js'
 import { developerLogDomain } from './developer-logs/index.js'
 import { fileDomain } from './files/index.js'
+import { LIBRARY_DOMAINS } from './library/index.js'
 import { oembedDomain } from './oembed/index.js'
 import { projectDomain } from './projects/index.js'
 import { userDomain } from './users/index.js'
@@ -51,6 +52,7 @@ export const DOMAINS: AnyDomain[] = [
 	developerLogDomain,
 	fileDomain,
 	oembedDomain,
+	...LIBRARY_DOMAINS,
 	projectDomain,
 	userDomain,
 	webhookDomain,

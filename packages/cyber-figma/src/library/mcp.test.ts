@@ -2,6 +2,7 @@ import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import { describe, expect, it } from 'vitest'
 import type { PaginatedResult, PaginationOptions } from '../pagination.js'
 import type { LibraryApi } from './api.js'
+import type { PublishedLibraryItem } from './gateway.js'
 import { registerLibraryTools } from './mcp.js'
 import { LIBRARY_RESOURCES, type LibraryResource } from './resources.js'
 
@@ -24,10 +25,24 @@ function createServerDouble() {
 
 type Call = { op: string; arg?: string; opts?: PaginationOptions }
 
+function item(overrides: Partial<PublishedLibraryItem> = {}): PublishedLibraryItem {
+	return {
+		key: 'k1',
+		file_key: 'main-file',
+		node_id: '1:23',
+		name: 'Button',
+		description: '',
+		created_at: '2026-01-01T00:00:00Z',
+		updated_at: '2026-02-02T00:00:00Z',
+		user: { id: 'u1', handle: 'designer', img_url: 'https://img' },
+		...overrides,
+	}
+}
+
 function createApiDouble() {
 	const calls: Call[] = []
-	const list: PaginatedResult<unknown> = {
-		data: [{ key: 'k1' }],
+	const list: PaginatedResult<PublishedLibraryItem> = {
+		data: [item()],
 		count: 1,
 		next_cursor: null,
 		prev_cursor: null,
@@ -35,7 +50,7 @@ function createApiDouble() {
 		page_count: 1,
 		truncated: false,
 	}
-	const api: LibraryApi<unknown> = {
+	const api: LibraryApi = {
 		listByTeam: async (team, opts) => {
 			calls.push({ op: 'listByTeam', arg: team, opts })
 			return list
@@ -46,7 +61,7 @@ function createApiDouble() {
 		},
 		get: async (key) => {
 			calls.push({ op: 'get', arg: key })
-			return { key }
+			return item({ key })
 		},
 	}
 	return { api, calls }
@@ -116,7 +131,7 @@ describe('the team list tool', () => {
 
 		expect(calls[0]).toMatchObject({ op: 'listByTeam', arg: '1234' })
 		expect(calls[0]?.opts).toMatchObject({ pageSize: 50 })
-		expect(JSON.parse(response.content[0].text).data).toEqual([{ key: 'k1' }])
+		expect(JSON.parse(response.content[0].text).data).toEqual([item()])
 	})
 })
 
@@ -149,6 +164,6 @@ describe('the get tool', () => {
 		const response = await tool.handler({ key: 'k1' })
 
 		expect(calls[0]).toMatchObject({ op: 'get', arg: 'k1' })
-		expect(JSON.parse(response.content[0].text)).toEqual({ key: 'k1' })
+		expect(JSON.parse(response.content[0].text)).toEqual(item())
 	})
 })

@@ -3,6 +3,7 @@ import type { PublishedComponent, PublishedStyle } from '../figma-types.js'
 import type { PaginatedResult, PaginationOptions } from '../pagination.js'
 import type { LibraryApi } from './api.js'
 import { libraryCommand } from './cli.js'
+import type { PublishedLibraryItem } from './gateway.js'
 import { LIBRARY_RESOURCES, type LibraryResource } from './resources.js'
 
 const COMPONENT = LIBRARY_RESOURCES[0] as LibraryResource
@@ -54,9 +55,12 @@ function result<T>(data: T[], overrides: Partial<PaginatedResult<T>> = {}): Pagi
 
 type Call = { op: string; arg?: string; opts?: PaginationOptions }
 
-function createApiDouble(items: unknown[] = [component()], listOverrides: Partial<PaginatedResult<unknown>> = {}) {
+function createApiDouble(
+	items: PublishedLibraryItem[] = [component()],
+	listOverrides: Partial<PaginatedResult<PublishedLibraryItem>> = {},
+) {
 	const calls: Call[] = []
-	const api: LibraryApi<unknown> = {
+	const api: LibraryApi = {
 		listByTeam: async (team, opts) => {
 			calls.push({ op: 'listByTeam', arg: team, opts })
 			return result(items, listOverrides)
@@ -67,13 +71,13 @@ function createApiDouble(items: unknown[] = [component()], listOverrides: Partia
 		},
 		get: async (key) => {
 			calls.push({ op: 'get', arg: key })
-			return items[0]
+			return items[0] as PublishedLibraryItem
 		},
 	}
 	return { api, calls }
 }
 
-function run(resource: LibraryResource, args: string[], api: LibraryApi<unknown>) {
+function run(resource: LibraryResource, args: string[], api: LibraryApi) {
 	return libraryCommand(resource, () => api).parseAsync(args, { from: 'user' })
 }
 
