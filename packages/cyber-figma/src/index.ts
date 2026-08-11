@@ -1,5 +1,6 @@
 /**
- * Placeholder public surface. The Figma domain modules, CLI, and MCP server land
- * here as they are built; see AGENTS.md for the architecture they must follow.
+ * Public surface of the `cyber-figma` spine. Domain modules (files, comments,
+ * components, webhooks, variables, …) add their `api.js` and `gateway.js`
+ * exports here as they land; see `src/README-for-domain-pods.md`.
  */
-export const packageName = 'cyber-figma'
+export * from './env.js'
