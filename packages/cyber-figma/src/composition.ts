@@ -7,6 +7,7 @@ import { devResourceDomain } from './dev-resources/index.js'
 import { developerLogDomain } from './developer-logs/index.js'
 import { fileDomain } from './files/index.js'
 import { projectDomain } from './projects/index.js'
+import { userDomain } from './users/index.js'
 import { webhookDomain } from './webhooks/index.js'
 
 // Where the domains are wired in. A domain owns its gateway, api, CLI bindings,
@@ -49,6 +50,7 @@ export const DOMAINS: AnyDomain[] = [
 	developerLogDomain,
 	fileDomain,
 	projectDomain,
+	userDomain,
 	webhookDomain,
 ]
 
