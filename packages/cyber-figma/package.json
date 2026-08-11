@@ -1,0 +1,46 @@
+{
+	"name": "cyber-figma",
+	"version": "0.0.0",
+	"description": "Figma CLI and MCP server for AI agents",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/cyberuni/cyber-figma.git"
+	},
+	"author": "unional <homawong@gmail.com>",
+	"license": "MIT",
+	"files": [
+		"dist",
+		"!dist/**/*.test.*",
+		"!dist/**/*.system.*",
+		"skills",
+		"plugin.json",
+		"mcp.json",
+		".mcp.json",
+		".claude-plugin",
+		".cursor-plugin",
+		".codex-plugin"
+	],
+	"type": "module",
+	"exports": {
+		".": {
+			"import": "./dist/index.js",
+			"types": "./dist/index.d.ts"
+		}
+	},
+	"scripts": {
+		"build": "tsdown",
+		"format": "biome format --write .",
+		"test": "vitest run src",
+		"test:watch": "vitest",
+		"typecheck": "tsc --noEmit"
+	},
+	"devDependencies": {
+		"@types/node": "^25.9.1",
+		"tsdown": "^0.22.14",
+		"typescript": "^6.0.3",
+		"vitest": "^4.1.10"
+	},
+	"engines": {
+		"node": ">=22"
+	}
+}
