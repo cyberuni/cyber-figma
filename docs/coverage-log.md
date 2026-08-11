@@ -4,6 +4,84 @@ What each domain pod shipped, endpoint by endpoint. One section per domain,
 alphabetical. Sections are additive — resolve a conflict here by keeping every
 side's section.
 
+## dev-resources
+
+**Endpoints covered — all four of the Dev Resources tag, no skips.**
+
+| Endpoint | Tier | CLI | MCP tool |
+| --- | --- | --- | --- |
+| `GET /v1/files/{key}/dev_resources` | 2 | `cyber-figma dev-resource list <file> [--node-ids <ids>]` | `figma_dev_resource_list` |
+| `POST /v1/dev_resources` | 2 | `cyber-figma dev-resource create <file> --node <ids> --name <name> --url <url>` | `figma_dev_resource_create` |
+| `PUT /v1/dev_resources` | 2 | `cyber-figma dev-resource update <id> [--name] [--url]` | `figma_dev_resource_update` |
+| `DELETE /v1/files/{key}/dev_resources/{id}` | 2 | `cyber-figma dev-resource delete <file> <id>` | `figma_dev_resource_delete` |
+
+Nothing was deliberately skipped. Note the CLI and MCP surfaces differ in shape
+on purpose: both writes are bulk endpoints, so the MCP tools take a `resources`
+array (many links, many files, one call) while the CLI takes one link and
+expands `--node a,b,c` into one request — the bulk path an agent reaches for at
+a terminal.
+
+### How the traps are handled
+
+- **A 200 is not proof of success.** `POST` and `PUT /v1/dev_resources` answer
+  `200` while carrying a per-item `errors` array. Every write goes through
+  `summarizeWrite` in `write-result.ts` and comes back as
+  `{ ok, action, requested, succeeded, failed, dev_resources, errors }`, so the
+  count of what actually landed is in the JSON/TOON payload and in the text
+  output alike — text prints `N of M dev resource(s) created` followed by every
+  rejection by file/node or id. `ok` is true only when Figma reported no error
+  at all.
+- **Nothing written is a failure.** When every requested item was rejected, the
+  api throws `DevResourceWriteFailed` (message naming each rejection, plus a
+  hint listing the documented causes), so the CLI exits nonzero through the
+  spine's handler instead of acknowledging a write that never happened. A
+  *partial* success is not thrown: it exits 0 and reports the failures, because
+  some of the work did land.
+- **Main file keys only.** Branch keys are rejected by all four endpoints. Every
+  `<file>` argument, MCP `file` param, and the domain help says "a MAIN file,
+  not a branch".
+- **Documented rejection causes** are carried in the failure hint: unknown file
+  key, the node already holds the maximum of **10** dev resources, or another
+  dev resource on that node already has the same URL.
+- **Node id forms.** `--node-ids`/`--node` and the MCP `node_id` accept the URL
+  bar's dashed form (`1-2`) and normalize to the API's `1:2`; a file argument
+  accepts a pasted `figma.com/design/…` URL.
+- **No publishing step.** Unlike components, styles, and variables, dev
+  resources are live the moment they are written, including on
+  already-published components. The help text says so, so nobody looks for a
+  publish command that does not exist.
+
+### Dev-Mode seat implications
+
+The REST endpoints themselves carry **no plan gate** — they behave like ordinary
+file-permission-scoped endpoints (read: any file access + `file_dev_resources:read`;
+write: edit access + `file_dev_resources:write`). What is gated is the surface
+these links appear in: per Figma's help center, **Dev Mode is available on paid
+plans and requires a Full or a Dev seat**. So on a Starter plan or a View/Collab
+seat the API still answers and the links are still stored — they are simply not
+visible in the product. The domain help text states exactly this, so a caller
+who sees a successful write but no link in the UI is not left guessing.
+
+(Related, and outside this domain: the `Completed` Dev Mode status is
+Organization/Enterprise only, which changes which statuses can fire the
+`DEV_MODE_STATUS_UPDATE` webhook event.)
+
+### Testing without an Enterprise plan
+
+Yes — the whole domain is testable on any plan, including Starter, since no
+endpoint here is Enterprise-gated. The live suite needs a **main** file key and,
+to run the write round-trip, a node id in that file; without the node id only
+the read contract runs, so a read-only credential still passes.
+
+```sh
+FIGMA_SYSTEM_TEST=1 FIGMA_ACCESS_TOKEN=<pat> \
+  FIGMA_DEV_RESOURCE_FILE_KEY=<main-file-key> FIGMA_DEV_RESOURCE_NODE_ID=1-2 \
+  pnpm cf test:system
+```
+
+The write specs create their links and delete them again, including on failure,
+so a real file is left as it was found.
+
 ## files
 
 **Endpoints covered — all six of the Files tag, no skips.**
