@@ -5,6 +5,7 @@ import { analyticsDomain } from './analytics/index.js'
 import { createClient, type FigmaClient } from './client.js'
 import { fileDomain } from './files/index.js'
 import { projectDomain } from './projects/index.js'
+import { webhookDomain } from './webhooks/index.js'
 
 // Where the domains are wired in. A domain owns its gateway, api, CLI bindings,
 // and MCP registrations together (Screaming Architecture); this module is the
@@ -39,7 +40,7 @@ export function defineDomain<Api>(module: DomainModule<Api>): AnyDomain {
  * Domain pods: add your module here, and add your `api.js` / `gateway.js`
  * exports to index.ts. Nothing else in the spine changes.
  */
-export const DOMAINS: AnyDomain[] = [activityLogDomain, analyticsDomain, fileDomain, projectDomain]
+export const DOMAINS: AnyDomain[] = [activityLogDomain, analyticsDomain, fileDomain, projectDomain, webhookDomain]
 
 export type RuntimeContext = {
 	client: FigmaClient
