@@ -167,6 +167,8 @@ FIGMA_DEV_RESOURCE_FILE_KEY=...  # dev resources: a MAIN file key, never a branc
 FIGMA_DEV_RESOURCE_NODE_ID=...   # dev resources: also run the write round-trip on this node
 FIGMA_VARIABLES_FILE_KEY=...     # variables: an Enterprise file the credential can read
 FIGMA_VARIABLES_WRITE=1          # variables: also run the specs that mutate that file
+FIGMA_COMMENT_FILE_KEY=...       # comments: a file the credential can read
+FIGMA_COMMENT_WRITES=1           # comments: also post and delete real comments in it
 ```
 
 | Variable | Used by |
@@ -196,6 +198,8 @@ FIGMA_VARIABLES_WRITE=1          # variables: also run the specs that mutate tha
 | `FIGMA_LIBRARY_MULTIPAGE` | `src/library/*.system.ts` — `1` when the team library exceeds one page of 30, enabling the multi-page specs |
 | `FIGMA_VARIABLES_FILE_KEY` | `src/variables/gateway.system.ts`. A file on an **Enterprise** plan the credential can read; without it the whole variables suite skips, because Variables is Enterprise-gated on read as well as write |
 | `FIGMA_VARIABLES_WRITE` | `src/variables/gateway.system.ts`. Also runs the specs that call `POST variables` against that file. Off by default: the write is real and the REST API has no publish or undo |
+| `FIGMA_COMMENT_FILE_KEY` | `src/comments/*.system.ts` — a file the credential can read. A file key or a Figma file URL |
+| `FIGMA_COMMENT_WRITES` | `src/comments/*.system.ts` — optional; adds the write specs, which post and delete real comments in that file. Figma lets only the author delete a comment, so use a file you own |
 
 Add a row here for every new system-test env var.
 
