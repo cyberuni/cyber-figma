@@ -4,6 +4,7 @@ import { activityLogDomain } from './activity-logs/index.js'
 import { analyticsDomain } from './analytics/index.js'
 import { createClient, type FigmaClient } from './client.js'
 import { devResourceDomain } from './dev-resources/index.js'
+import { developerLogDomain } from './developer-logs/index.js'
 import { fileDomain } from './files/index.js'
 import { projectDomain } from './projects/index.js'
 import { webhookDomain } from './webhooks/index.js'
@@ -45,6 +46,7 @@ export const DOMAINS: AnyDomain[] = [
 	activityLogDomain,
 	analyticsDomain,
 	devResourceDomain,
+	developerLogDomain,
 	fileDomain,
 	projectDomain,
 	webhookDomain,
