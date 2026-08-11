@@ -6,10 +6,20 @@ import { teamIdFromInput } from './url.js'
 // is for Asana. The one job here is that a missing one says where to get it.
 
 let teamOverride: string | undefined
+let repoConfigTeamId: string | undefined
 
 /** The `--team` global flag, which outranks FIGMA_TEAM_ID. */
 export function setTeamOverride(team: string | undefined) {
 	teamOverride = team
+}
+
+/**
+ * The team id from the repo's checked-in config — the last resort, so a
+ * checked-out repo is self-describing without every contributor setting an env
+ * var, while a contributor who does set one is deliberately overriding it.
+ */
+export function setRepoConfigTeamId(team: string | undefined) {
+	repoConfigTeamId = team
 }
 
 const MISSING_TEAM_MESSAGE = `A Figma team id is required for this command.
@@ -22,7 +32,10 @@ Then either set it once:
   export FIGMA_TEAM_ID=<team-id>
 
 or pass it per invocation (the id or the whole URL both work):
-  cyber-figma --team <team-id> <command>`
+  cyber-figma --team <team-id> <command>
+
+To fix it for everyone working in this repo, commit it to .agents/cyber-figma.json:
+  { "schema_version": 1, "team_id": "<team-id>" }`
 
 /**
  * The team id for this invocation: what the command was given, else the
@@ -30,7 +43,7 @@ or pass it per invocation (the id or the whole URL both work):
  * is, since the URL bar is where users get it from.
  */
 export function optionalTeamId(explicit?: string): string | undefined {
-	const value = explicit ?? teamOverride ?? envValue('FIGMA_TEAM_ID')
+	const value = explicit ?? teamOverride ?? envValue('FIGMA_TEAM_ID') ?? repoConfigTeamId
 	return value ? teamIdFromInput(value) : undefined
 }
 

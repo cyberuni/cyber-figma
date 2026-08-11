@@ -175,3 +175,14 @@ FIGMA_TEAM_ID=...     # team-scoped list pagination
 | `FIGMA_SYSTEM_TEST` | enables every `*.system.ts` suite |
 
 Add a row here for every new system-test env var.
+
+A repo can also commit its team id so contributors need no environment at all —
+`.agents/cyber-figma.json`, read by `src/repo-config.ts`:
+
+```json
+{ "schema_version": 1, "team_id": "1234567890" }
+```
+
+Precedence for the team id, highest first: a command argument, `--team`,
+`FIGMA_TEAM_ID`, then this file. The environment wins over the checked-in file
+so a contributor can retarget one shell without editing a tracked file.

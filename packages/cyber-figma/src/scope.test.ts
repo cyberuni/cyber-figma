@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
-import { optionalTeamId, requireTeamId, setTeamOverride } from './scope.js'
+import { optionalTeamId, requireTeamId, setRepoConfigTeamId, setTeamOverride } from './scope.js'
 
 const MANAGED = ['FIGMA_TEAM_ID', 'FIGMA_TEAM'] as const
 const original = Object.fromEntries(MANAGED.map((name) => [name, process.env[name]]))
@@ -15,6 +15,7 @@ afterEach(() => {
 		else delete process.env[name]
 	}
 	setTeamOverride(undefined)
+	setRepoConfigTeamId(undefined)
 })
 
 // Figma states plainly that a team id cannot be obtained programmatically from
@@ -59,5 +60,27 @@ describe('team id resolution', () => {
 		expect(() => requireTeamId()).toThrowError(/--team/)
 		// The URL bar is the only place a user can get this.
 		expect(() => requireTeamId()).toThrowError(/\/team\//)
+	})
+})
+
+// The repo config is the last resort: it makes a checked-out repo
+// self-describing without forcing every contributor to set an env var, but a
+// contributor who does set one is deliberately overriding the repo.
+describe('the repo config as a team id source', () => {
+	it('supplies a team id when nothing else does', () => {
+		setRepoConfigTeamId('repo-team')
+		expect(requireTeamId()).toBe('repo-team')
+	})
+
+	it('loses to FIGMA_TEAM_ID', () => {
+		setRepoConfigTeamId('repo-team')
+		process.env.FIGMA_TEAM_ID = 'env-team'
+		expect(requireTeamId()).toBe('env-team')
+	})
+
+	it('loses to the --team flag', () => {
+		setRepoConfigTeamId('repo-team')
+		setTeamOverride('flag-team')
+		expect(requireTeamId()).toBe('flag-team')
 	})
 })
