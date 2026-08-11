@@ -163,6 +163,8 @@ System tests (see **Testing** above):
 ```
 FIGMA_SYSTEM_TEST=1   # enable *.system.ts suites
 FIGMA_TEAM_ID=...     # team-scoped list pagination
+FIGMA_DEV_RESOURCE_FILE_KEY=...  # dev resources: a MAIN file key, never a branch
+FIGMA_DEV_RESOURCE_NODE_ID=...   # dev resources: also run the write round-trip on this node
 ```
 
 | Variable | Used by |
@@ -175,6 +177,8 @@ FIGMA_TEAM_ID=...     # team-scoped list pagination
 | `FIGMA_SYSTEM_TEST` | enables every `*.system.ts` suite |
 | `FIGMA_ACTIVITY_LOGS_SYSTEM_TEST` | `src/activity-logs/*.system.ts` — opt-in. Needs an Enterprise org admin credential in `plan` or `oauth` mode; a PAT cannot reach the endpoint |
 | `FIGMA_ANALYTICS_LIBRARY_FILE_KEY` | `src/analytics/*.system.ts` — the key of a published library file. Enterprise plan required |
+| `FIGMA_DEV_RESOURCE_FILE_KEY` | `src/dev-resources/*.system.ts` — a **main** file key, never a branch key |
+| `FIGMA_DEV_RESOURCE_NODE_ID` | `src/dev-resources/*.system.ts` — optional; a node in that file, which adds the create/update/delete round-trip |
 | `FIGMA_FILE_KEY` | `src/files/*.system.ts` — a file the credential can read. The suite spends tier-1 calls, so it also needs `FIGMA_NODE_ID` before it runs |
 | `FIGMA_NODE_ID` | `src/files/*.system.ts` — a node id in that file, dashed URL form accepted |
 | `FIGMA_WEBHOOK_SYSTEM_ENDPOINT` | opts the webhook lifecycle system spec in: an HTTPS URL a throwaway **PAUSED** webhook may point at on `FIGMA_TEAM_ID`. Nothing is ever delivered to it, and the webhook is deleted in a `finally` |
