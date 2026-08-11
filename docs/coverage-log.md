@@ -4,6 +4,67 @@ What each domain pod shipped, endpoint by endpoint. One section per domain,
 alphabetical. Sections are additive — resolve a conflict here by keeping every
 side's section.
 
+## comments
+
+**Endpoints covered — all 6 (Comments 3, Comment Reactions 3):**
+
+| Endpoint | Command | MCP tool |
+| --- | --- | --- |
+| `GET /v1/files/{key}/comments` | `comment list <file>` | `figma_comment_list` |
+| `POST /v1/files/{key}/comments` | `comment create <file>` | `figma_comment_create` |
+| `DELETE /v1/files/{key}/comments/{id}` | `comment delete <file> <comment-id>` | `figma_comment_delete` |
+| `GET …/comments/{id}/reactions` | `comment reaction list <file> <comment-id>` | `figma_comment_reaction_list` |
+| `POST …/comments/{id}/reactions` | `comment reaction add <file> <comment-id> --emoji` | `figma_comment_reaction_add` |
+| `DELETE …/comments/{id}/reactions` | `comment reaction delete <file> <comment-id> --emoji` | `figma_comment_reaction_delete` |
+
+Nothing in the two endpoint groups was skipped.
+
+**Deliberately not built:**
+
+- **`comment get <id>`** — Figma has no get-one-comment endpoint. Faking it
+  would cost a full file listing per call and read like an endpoint that exists.
+  `comment list --thread <id>` covers the real need.
+- **Resolving a comment** — the REST API cannot resolve or unresolve one.
+  `resolved_at` is reported in the listing; changing it is Plugin-API territory.
+- **Emoji shortcode validation against the accepted list** — Figma publishes it
+  as an external emoji-mart data file rather than in any schema, so only the
+  shortcode *shape* is checked locally, with the file linked in the error.
+
+**Flags and behavior worth knowing:**
+
+- `comment list` takes `--as-md` and `--thread <comment-id>`. Figma returns a
+  file's root comments and every reply in one flat list with no parameter that
+  narrows it, so `--thread` filters the response by `parent_id`.
+- `comment create` pins with `--x/--y` (canvas), `--node-id` (offset inside a
+  frame), and `--region-width/--region-height/--pin-corner` (region variants of
+  each) — the four `client_meta` shapes, which differ only by which fields are
+  present. `--node-id` accepts the `1-23` spelling from the URL bar.
+- `--reply-to` must name a **root** comment; Figma rejects a reply to a reply.
+- Both deletes go through `deleteIdempotently`, so a repeat reports
+  `already_absent` rather than failing.
+- Reactions are the only paginated read here (`url_cursor`: `--cursor`, `--all`,
+  `--max-pages`). The comment list declares `none` and reports it, so a caller
+  can tell "no more" from "never paginates".
+
+**Traps handled:**
+
+- `emoji` is a **query** parameter on the reaction delete, not a path segment.
+- Figma takes an emoji **shortcode** (`:heart:`), never the character; a literal
+  emoji is refused before a request is spent on it.
+- Only the author may delete a comment; only the person who left a reaction may
+  remove it. Both are `403`, the same status as an expired token, so both attach
+  their own hint.
+- Plan access tokens do not carry `file_comments:write` at all, so under
+  `--auth-mode plan` every write in this domain is refused up front (exit 3)
+  rather than round-tripping into a generic 403. Reads work normally.
+
+**Testable without an Enterprise plan: yes.** Comments are Tier 2 and gated only
+on ordinary file access — any plan, any seat that can comment. The system suite
+needs `FIGMA_SYSTEM_TEST=1`, `FIGMA_ACCESS_TOKEN`, and `FIGMA_COMMENT_FILE_KEY`;
+the write specs are opt-in again behind `FIGMA_COMMENT_WRITES=1` because
+they post and delete real comments — use a file you own, since only the author
+can delete what they posted. A plan access token can run the read specs only.
+
 ## dev-resources
 
 **Endpoints covered — all four of the Dev Resources tag, no skips.**
