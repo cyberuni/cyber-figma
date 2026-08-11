@@ -174,6 +174,8 @@ FIGMA_TEAM_ID=...     # team-scoped list pagination
 | `CYBER_FIGMA_MCP_FORMAT` | `toon` switches MCP tool output to TOON |
 | `FIGMA_SYSTEM_TEST` | enables every `*.system.ts` suite |
 | `FIGMA_ANALYTICS_LIBRARY_FILE_KEY` | `src/analytics/*.system.ts` — the key of a published library file. Enterprise plan required |
+| `FIGMA_FILE_KEY` | `src/files/*.system.ts` — a file the credential can read. The suite spends tier-1 calls, so it also needs `FIGMA_NODE_ID` before it runs |
+| `FIGMA_NODE_ID` | `src/files/*.system.ts` — a node id in that file, dashed URL form accepted |
 
 Add a row here for every new system-test env var.
 
