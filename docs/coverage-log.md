@@ -138,6 +138,69 @@ itself when they are unset.
 FIGMA_SYSTEM_TEST=1 FIGMA_ACCESS_TOKEN=<pat> FIGMA_FILE_KEY=<key> FIGMA_NODE_ID=1-2 pnpm cf test:system
 ```
 
+## library (components, component sets, styles)
+
+Implemented in `packages/cyber-figma/src/library/`, registered as **three**
+domains — `component`, `component-set`, `style` — out of one implementation,
+because the three families are the same three endpoints over three path
+segments and differ only in their nouns and in the `style_type` field.
+
+### Endpoints covered (9 of 9)
+
+| Endpoint | CLI | MCP tool |
+| --- | --- | --- |
+| `GET /v1/teams/{team_id}/components` | `component team-list [team]` | `figma_component_team_list` |
+| `GET /v1/files/{file_key}/components` | `component file-list <file>` | `figma_component_file_list` |
+| `GET /v1/components/{key}` | `component get <key>` | `figma_component_get` |
+| `GET /v1/teams/{team_id}/component_sets` | `component-set team-list [team]` | `figma_component_set_team_list` |
+| `GET /v1/files/{file_key}/component_sets` | `component-set file-list <file>` | `figma_component_set_file_list` |
+| `GET /v1/component_sets/{key}` | `component-set get <key>` | `figma_component_set_get` |
+| `GET /v1/teams/{team_id}/styles` | `style team-list [team]` | `figma_style_team_list` |
+| `GET /v1/files/{file_key}/styles` | `style file-list <file>` | `figma_style_file_list` |
+| `GET /v1/styles/{key}` | `style get <key>` | `figma_style_get` |
+
+Nothing in this family was skipped. All nine are read-only; Figma publishes no
+write endpoints for components, component sets, or styles (publishing happens in
+the editor, not over REST).
+
+### Traps handled
+
+- **Published only.** Every CLI subcommand description, every MCP tool
+  description, and the file-scoped error hint say so outright — an unpublished
+  component is absent from these responses, so a correct empty answer otherwise
+  reads as a broken command.
+- **Main file key only.** The `<file>` argument and the `file` tool parameter
+  both say a branch key cannot work, because branches cannot publish.
+- **Pagination.** The team lists declare `id_cursor` (`page_size` default 30,
+  max 1000, opaque integer `before`/`after`), so the CLI offers
+  `--page-size/--before/--after/--all/--max-pages` and no `--cursor`; the file
+  lists declare `none` and offer nothing. Both run the shared
+  `defineListPaginationAcceptanceSpecs` contract.
+- **Scopes.** The three differ by scope of access, and Figma refuses a missing
+  one with the same 401/403 it uses for a missing file, so each operation
+  attaches its own: `team_library_content:read` (team),
+  `library_content:read` (file), `library_assets:read` (by key).
+
+### Plan requirements
+
+**Fully testable without an Enterprise plan.** No plan gate: all nine are
+rate-limit tier 3 and available on every plan to any seat, with both personal
+and plan access tokens. The only requirement is a team with a published library.
+
+System suite: `src/library/gateway.system.ts`, gated on `FIGMA_SYSTEM_TEST` +
+`FIGMA_ACCESS_TOKEN` + `FIGMA_TEAM_ID` + `FIGMA_LIBRARY_FILE_KEY` (a main file
+key with published content). `FIGMA_LIBRARY_MULTIPAGE=1` enables the multi-page
+specs on an account whose team library exceeds one page of 30.
+
+### Spine note for the operator
+
+`printNextPageHint` in `src/cli-options.ts` always prints `--cursor <value>`,
+but the `id_cursor` and `url_page` models advance on `--after` — `collectPages`
+already knows this (`advanceWith`). The hint is wrong for those two models, so
+this domain prints its own `--after` next step instead of calling it. A spine
+fix would be to derive the flag from the model, the way `addPaginationOptions`
+already does.
+
 ## webhooks
 
 **Endpoints covered — all 7 in the Webhooks v2 family.**
