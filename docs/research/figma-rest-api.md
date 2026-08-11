@@ -69,6 +69,7 @@ Each of these was re-verified against OpenAPI **v0.41.0** on 2026-08-11 rather t
 | **`err` typed as always-`null` on `GET images`** | Still present | On a `400`, `err` carries the diagnostic naming the invalid parameter — the most useful error detail the API gives | Type as `string \| null`; surface it in the 400 handler |
 | **Analytics param named `file_key` vs docs' `library_file_key`** ([#28](https://github.com/figma/rest-api-spec/issues/28)) | Still present | Cosmetic on the wire (path segment); affects generated naming only | Pick one deliberately |
 | **`GetFileResponse` missing `linkAccess`** ([#30](https://github.com/figma/rest-api-spec/issues/30)) | **Fixed** — present in v0.41.0, issue still open | none | Ignore the issue |
+| **`GetProjectFilesResponse` has no field for `branch_data`** | Still present in v0.41.0 | The query parameter `branch_data` is declared and documented as returning "branch metadata in the response for each main file with a branch inside the project" ([get project files](https://developers.figma.com/docs/rest-api/#get-project-files)), but no response property carries it, and the prose does not spell the entries out either | Keep the extra field unnamed rather than inventing its shape; it survives into `--json` output regardless |
 
 The 15 parameters affected by the `number`/`integer` defect, across 6 endpoints:
 
@@ -208,6 +209,8 @@ Tag: `Projects`. All read-only.
 ### `GET /v1/projects/{project_id}/files` — Get files in a project
 
 `operationId: getProjectFiles`. Params: `project_id` (path ✅), `branch_data` (query, boolean — include branch metadata per main file). Response: `{ name, files: [...] }`. **Tier 2.** No pagination.
+
+Each entry of `files` is `{ key, name, thumbnail_url?, last_modified }`. What `branch_data=true` adds per main file is not in the response type — see **Known spec defects**.
 
 ---
 
