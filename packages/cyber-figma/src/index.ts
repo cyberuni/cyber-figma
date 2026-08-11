@@ -2,6 +2,9 @@
  * Public surface of the `cyber-figma` spine. Domain modules (files, comments,
  * components, webhooks, variables, …) add their `api.js` and `gateway.js`
  * exports here as they land; see `src/README-for-domain-pods.md`.
+ *
+ * `src/testing/` is deliberately absent: it imports vitest, so it is reached by
+ * relative path from a domain's specs rather than through the published entry.
  */
 export * from './cli-error.js'
 export * from './cli-options.js'
