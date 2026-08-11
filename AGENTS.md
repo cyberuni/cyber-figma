@@ -101,7 +101,12 @@ Which optional env vars gate which suite is decided as the suites are written; r
 - **Authentication**: `FIGMA_ACCESS_TOKEN` env var (personal access token); override per-invocation with `--token <pat>`
 - **Team**: `FIGMA_TEAM_ID` env var for the default team id; override with `--team <id>`
 - **No duplication**: CLI and MCP both call `api.ts`; never inline HTTP or SDK calls in `cli.ts` or `mcp.ts`
-- **Figma API client**: TODO — the transport choice (raw `fetch` vs a published client) and its response-unwrapping convention land with the first domain; document it here then, sourced from [`docs/research/figma-rest-api.md`](docs/research/figma-rest-api.md)
+- **Figma API client**: a hand-written `fetch` client in `src/client.ts`. There is no official Figma JS SDK, and the published OpenAPI spec has verified defects a generator would reproduce as bugs, so nothing is code-generated from it — `@figma/rest-api-spec` supplies **response types only**, re-exported through `src/figma-types.ts` with the documented corrections applied. Import response types from `src/figma-types.js`, never from `@figma/rest-api-spec` directly.
+- **Response unwrapping**: some endpoints wrap their payload in `{ status, error, meta }` and others return it at the top level. A request declares `unwrap: 'meta'` when its endpoint wraps; the client returns the payload either way and throws when an envelope reports failure behind a 200.
+- **Query parameters**: the client coerces every numeric query parameter to an integer, because the spec types 15 integer params as `number` and Figma rejects `30.0`. The one legitimately fractional parameter (`scale` on image renders) opts out with `floatParam()`.
+- **Auth modes**: `--auth-mode` / `FIGMA_AUTH_MODE` selects `personal` (default), `plan`, or `oauth`. The first two send `X-Figma-Token`, OAuth sends a bearer token. The mode is configured, never sniffed from the token string.
+- **Errors**: never interpret a status code in a domain. `src/figma-error.ts` classifies it — including the traps that make Figma's codes misleading (an expired token is a 403, not a 401; the Enterprise-gated endpoint groups refuse with an ordinary 401/403; a multi-day 429 with `X-Figma-Rate-Limit-Type: low` is usually a file in a personal Starter context). Attach a `hint` to a thrown error when an operation knows more than the status code does; it wins over the derived hint.
+- **Adding a resource domain**: [`packages/cyber-figma/src/README-for-domain-pods.md`](packages/cyber-figma/src/README-for-domain-pods.md) is the contract, with a worked skeleton. A domain is one `defineDomain` entry in `DOMAINS` plus its own directory.
 
 ### Agent-friendly output
 
@@ -112,13 +117,25 @@ The CLI and MCP follow the [10 agent-CLI principles](https://github.com/kuncheng
 - **Truncation**: wrap large free-text fields with `truncate(value, { full: isFull() })` from `src/truncate.ts`. Figma document trees are deep — truncate node payloads by default.
 - **Aggregates & next steps**: use `printCountSummary()` / `printSummary()` and `printNextSteps()` (text-mode only) from `src/output.ts`.
 - **Minimal default schemas**: list and get commands request the smallest useful field/depth set when the user gives none.
-- **Errors & exit codes**: the top-level CLI catch uses `renderCliError` / `exitCodeFor` from `src/cli-error.ts`; throw structured error objects, never call `process.exit` inside a command. Commander usage errors (unknown flag or subcommand) are handled by `src/cli-usage.ts` and exit `2`.
+- **Errors & exit codes**: the top-level CLI catch uses `renderCliError` / `exitCodeFor` from `src/cli-error.ts`; throw structured error objects, never call `process.exit` inside a command. Commander usage errors (unknown flag or subcommand) are handled by `src/cli-usage.ts` and exit `2`. The full map, which is part of the contract agents branch on: `0` ok, `1` error, `2` usage, `3` auth/config, `4` forbidden, `5` not found, `6` rate limited, `7` above the plan level.
 - **Mutations**: acknowledgements go through `output(payload, readable)` so `--json`/`--toon` are honored; deletes go through `deleteIdempotently()` from `src/idempotent-delete.ts`.
 - **MCP**: tools serialize JSON; TOON is applied centrally by `withMcpOutputFormat` (env `CYBER_FIGMA_MCP_FORMAT=toon`). Do not re-implement formatting per tool.
 
 ### Pagination
 
-Figma paginates inconsistently across resources (cursor, page-size, and unpaginated endpoints all exist) — see [`docs/research/figma-rest-api.md`](docs/research/figma-rest-api.md). Normalize it in `src/pagination.ts` so every list endpoint in `api.ts` takes one `PaginationOptions` shape and returns one `PaginatedResult` shape, whatever the endpoint underneath does. MCP list tools spread `paginationParams` from `src/mcp-options.ts`.
+Figma has no single pagination model — see [`docs/research/figma-rest-api.md`](docs/research/figma-rest-api.md). `src/pagination.ts` names every real variant and normalizes the ends: one `PaginationOptions` in, one `PaginatedResult` out, whatever the endpoint underneath does.
+
+| `PaginationSpec.model` | Endpoints | Request | Response |
+| --- | --- | --- | --- |
+| `url_cursor` | comment reactions, `/v2/webhooks` with `plan_api_id` | `cursor` | `pagination.{prev,next}_page` URLs |
+| `url_page` | file versions | `page_size`, `before`/`after` | `pagination.{prev,next}_page` URLs |
+| `id_cursor` | team components, component sets, styles | `page_size`, `before`/`after` | `meta.cursor.{before,after}` integers |
+| `row_cursor` | all six Library Analytics endpoints | `cursor` | `{ rows, next_page: boolean, cursor? }` |
+| `next_cursor` | AI Usage | `cursor`, `limit` | `{ rows, next_cursor, has_next_page }` |
+| `meta_cursor` | Developer Logs (in the **body**) | `cursor`, `limit` | `meta: { items, cursor, has_more }` |
+| `none` | the majority — file, nodes, images, comments, project files, variables, dev resources, … | — | everything at once |
+
+Each list endpoint declares its spec once; `paginationParamsFor` builds the request params, `collectPages` walks with that model's own advance parameter, and `addPaginationOptions` / `paginationParams` derive the CLI flags and MCP tool params from it — so a command cannot advertise a `--cursor` its endpoint does not have.
 
 ### MCP Tools
 
@@ -150,7 +167,11 @@ FIGMA_TEAM_ID=...     # team-scoped list pagination
 
 | Variable | Used by |
 | --- | --- |
+| `FIGMA_ACCESS_TOKEN` | every command; alias `FIGMA_TOKEN`. Override with `--token` |
+| `FIGMA_TEAM_ID` | team-scoped commands; alias `FIGMA_TEAM`. Override with `--team`. Accepts a team URL |
+| `FIGMA_AUTH_MODE` | `personal` (default), `plan`, or `oauth`. Override with `--auth-mode` |
+| `FIGMA_API_BASE_URL` | base URL override, for Figma for Government (`https://api.figma-gov.com`) |
+| `CYBER_FIGMA_MCP_FORMAT` | `toon` switches MCP tool output to TOON |
 | `FIGMA_SYSTEM_TEST` | enables every `*.system.ts` suite |
-| `FIGMA_TEAM_ID` | team-scoped list pagination system tests |
 
 Add a row here for every new system-test env var.
