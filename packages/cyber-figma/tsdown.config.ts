@@ -1,10 +1,10 @@
 import { defineConfig } from 'tsdown'
 
-// `cli` and `mcp` entries join this list once those surfaces land; the CLI `bin`
-// and the `./mcp` export in package.json follow the same step.
 export default defineConfig({
 	entry: {
 		index: 'src/index.ts',
+		cli: 'src/cli.ts',
+		mcp: 'src/mcp.ts',
 	},
 	format: 'esm',
 	outExtensions: () => ({
