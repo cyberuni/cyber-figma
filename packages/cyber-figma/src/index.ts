@@ -4,6 +4,7 @@
  * exports here as they land; see `src/README-for-domain-pods.md`.
  */
 export * from './env.js'
+export * from './figma-error.js'
 export * from './output.js'
 export * from './toon.js'
 export * from './truncate.js'
