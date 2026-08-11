@@ -165,6 +165,8 @@ FIGMA_SYSTEM_TEST=1   # enable *.system.ts suites
 FIGMA_TEAM_ID=...     # team-scoped list pagination
 FIGMA_DEV_RESOURCE_FILE_KEY=...  # dev resources: a MAIN file key, never a branch
 FIGMA_DEV_RESOURCE_NODE_ID=...   # dev resources: also run the write round-trip on this node
+FIGMA_VARIABLES_FILE_KEY=...     # variables: an Enterprise file the credential can read
+FIGMA_VARIABLES_WRITE=1          # variables: also run the specs that mutate that file
 ```
 
 | Variable | Used by |
@@ -191,6 +193,8 @@ FIGMA_DEV_RESOURCE_NODE_ID=...   # dev resources: also run the write round-trip 
 | `FIGMA_WEBHOOK_SYSTEM_PLAN_API_ID` | opts the live webhook list-pagination spec in: a plan api id (`team-<teamId>` or `organization-<orgId>`), the only form of `GET /v2/webhooks` that paginates |
 | `FIGMA_LIBRARY_FILE_KEY` | `src/library/*.system.ts` — a **main** file key whose components, component sets, and styles are published. Branch keys cannot publish |
 | `FIGMA_LIBRARY_MULTIPAGE` | `src/library/*.system.ts` — `1` when the team library exceeds one page of 30, enabling the multi-page specs |
+| `FIGMA_VARIABLES_FILE_KEY` | `src/variables/gateway.system.ts`. A file on an **Enterprise** plan the credential can read; without it the whole variables suite skips, because Variables is Enterprise-gated on read as well as write |
+| `FIGMA_VARIABLES_WRITE` | `src/variables/gateway.system.ts`. Also runs the specs that call `POST variables` against that file. Off by default: the write is real and the REST API has no publish or undo |
 
 Add a row here for every new system-test env var.
 
