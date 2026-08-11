@@ -24,6 +24,14 @@ export default defineConfig({
 					],
 				},
 				{
+					label: 'CLI',
+					items: [{ autogenerate: { directory: 'cli' } }],
+				},
+				{
+					label: 'MCP',
+					items: [{ autogenerate: { directory: 'mcp' } }],
+				},
+				{
 					label: 'Reference',
 					items: [{ autogenerate: { directory: 'reference' } }],
 				},
