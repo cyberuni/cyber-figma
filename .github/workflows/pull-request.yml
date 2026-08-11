@@ -1,0 +1,34 @@
+name: pull-request
+on:
+  pull_request:
+    types: [opened, synchronize]
+  # The merge queue builds a temporary merge-group branch and looks for the required
+  # contexts there. It fires neither `pull_request` nor `push`, so without this trigger
+  # a queued PR waits forever on checks that never start.
+  merge_group:
+
+# Cancel superseded runs on a PR, but never on a merge-group branch — cancelling
+# there would stall the queue on a check that never reports.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  code:
+    uses: cyberuni/.github/.github/workflows/pnpm-verify.yml@main
+    permissions:
+      contents: read
+    with:
+      os: '["ubuntu-latest"]'
+      skip-playwright: true
+      skip-codecov: true
+
+  # The release PR is the last point where the next publish is reviewable; after it
+  # merges, release.yml publishes unattended. Only runs there, so ordinary PRs are
+  # unaffected. Deliberately not a required check — it is skipped on every other PR,
+  # and a skipped check never satisfies a required context.
+  publish-gate:
+    if: startsWith(github.head_ref, 'changeset-release/')
+    uses: cyberuni/.github/.github/workflows/pnpm-publish-gate.yml@main
+    permissions:
+      contents: read
