@@ -173,6 +173,7 @@ FIGMA_TEAM_ID=...     # team-scoped list pagination
 | `FIGMA_API_BASE_URL` | base URL override, for Figma for Government (`https://api.figma-gov.com`) |
 | `CYBER_FIGMA_MCP_FORMAT` | `toon` switches MCP tool output to TOON |
 | `FIGMA_SYSTEM_TEST` | enables every `*.system.ts` suite |
+| `FIGMA_ANALYTICS_LIBRARY_FILE_KEY` | `src/analytics/*.system.ts` — the key of a published library file. Enterprise plan required |
 
 Add a row here for every new system-test env var.
 
