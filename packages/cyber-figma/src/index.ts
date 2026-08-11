@@ -4,6 +4,7 @@
  * exports here as they land; see `src/README-for-domain-pods.md`.
  */
 export * from './cli-error.js'
+export * from './cli-options.js'
 export * from './cli-usage.js'
 export * from './client.js'
 export * from './env.js'
@@ -11,6 +12,7 @@ export * from './figma-error.js'
 export type * from './figma-types.js'
 export * from './idempotent-delete.js'
 export * from './mcp-error.js'
+export * from './mcp-options.js'
 export * from './mcp-output.js'
 export * from './output.js'
 export * from './pagination.js'
