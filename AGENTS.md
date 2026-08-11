@@ -57,7 +57,7 @@ Everything the plugin needs lives in `packages/cyber-figma/` and must stay liste
 | `.plugin/plugin.json` | Canonical universal-plugin source; not published |
 | `skills/<name>/SKILL.md` | All of them (fixed location) |
 
-`.claude-plugin/marketplace.json` at the **repo root** lists the plugin with an `npm` source. When the plugin manifests land, add `scripts/sync-plugin-version.mjs` (mirroring cyber-asana's) and wire it into the root `version` script so manifest versions follow `packages/cyber-figma/package.json`.
+`.claude-plugin/marketplace.json` at the **repo root** lists the plugin with an `npm` source. Version bumps flow from `packages/cyber-figma/package.json` through `scripts/sync-plugin-version.mjs` on `pnpm version` — add any new versioned manifest to that script's list. `mcp.json` and `.mcp.json` are not in it because they carry no `version` field.
 
 Only `${PLUGIN_ROOT}` and `${PLUGIN_DATA}` expand in `mcp.json`; never put a `"${SOME_VAR}"` value in its `env`, as it arrives literally and shadows the real variable.
 
