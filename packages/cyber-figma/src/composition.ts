@@ -12,6 +12,7 @@ import { LIBRARY_DOMAINS } from './library/index.js'
 import { oembedDomain } from './oembed/index.js'
 import { projectDomain } from './projects/index.js'
 import { userDomain } from './users/index.js'
+import { variableDomain } from './variables/index.js'
 import { webhookDomain } from './webhooks/index.js'
 
 // Where the domains are wired in. A domain owns its gateway, api, CLI bindings,
@@ -59,6 +60,7 @@ export const DOMAINS: AnyDomain[] = [
 	...LIBRARY_DOMAINS,
 	projectDomain,
 	userDomain,
+	variableDomain,
 	webhookDomain,
 ]
 
