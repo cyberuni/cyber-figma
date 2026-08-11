@@ -200,6 +200,101 @@ already knows this (`advanceWith`). The hint is wrong for those two models, so
 this domain prints its own `--after` next step instead of calling it. A spine
 fix would be to derive the flag from the model, the way `addPaginationOptions`
 already does.
+## oembed
+
+**Endpoints covered — the whole oEmbed tag (1 endpoint), no skips.**
+
+| Endpoint | Tier | CLI | MCP tool |
+| --- | --- | --- | --- |
+| `GET /v1/oembed` | 3 | `cyber-figma oembed get <url> [--max-width] [--max-height]` | `figma_oembed_get` |
+
+### How the traps are handled
+
+- **Plan access tokens cannot reach it.** Refused in `api.ts` *before* the
+  request is sent, naming the credential mode — Figma answers a plan token with
+  the same 403 it uses for an expired token, which sends the reader after the
+  wrong cause.
+- **It takes a URL, not a file key.** Every other command in the CLI takes a
+  file key, so the mix-up is the likely one: a non-URL argument is rejected with
+  the URL to use instead (`https://www.figma.com/design/<key>`), without
+  spending a request.
+- **501 is unique to this endpoint.** The spine's generic 5xx hint ("retry with
+  fewer nodes") would mislead, so a 501 gets its own hint: Figma produced no
+  embed for that URL — check it is a Figma file or a published Make site, and
+  that it is shared beyond "only invited people".
+- **The iframe HTML is truncated** by default like any large free-text field;
+  `--full` prints it whole. `--json`/`--toon` always carry it complete.
+
+**Testable without Enterprise: yes.** No plan gate; scope `file_metadata:read`.
+The live suite needs `FIGMA_OEMBED_URL` (a file or published Make URL the
+credential can see) and a personal or OAuth credential.
+
+## projects
+
+**Endpoints covered — the whole Projects tag (3 endpoints), no skips.** The tag
+is entirely read-only; Figma's REST API creates and deletes no projects at all.
+
+| Endpoint | Tier | CLI | MCP tool |
+| --- | --- | --- | --- |
+| `GET /v1/teams/{team_id}/projects` | 2 | `cyber-figma project list [team]` | `figma_project_list` |
+| `GET /v1/projects/{project_id}/meta` | 3 | `cyber-figma project get <project>` | `figma_project_get` |
+| `GET /v1/projects/{project_id}/files` | 2 | `cyber-figma project files <project> [--branch-data]` | `figma_project_files` |
+
+### The discovery walk
+
+This domain is the entry point, so each listing names the next call through
+`printNextSteps`: `project list` → `project files <id>` / `project get <id>`,
+`project files` → `file get <key>` / `comment list <key>`, and `user me` →
+`project list --team <id>`. A team id is the one identifier Figma will not hand
+you, so the walk starts where the spine's `scope.ts` resolves it from
+(`--team` / `FIGMA_TEAM_ID` / `.agents/cyber-figma.json` / a pasted team URL) —
+none of that is reimplemented here.
+
+### How the traps are handled
+
+- **No team-id discovery endpoint.** Team resolution is the spine's
+  `requireTeamId`, whose failure message says where in the URL bar to find one.
+  A missing team id surfaces as a rejected promise, not a throw at call time.
+- **Project ids come from the URL bar too.** `project get` and `project files`
+  accept a bare id or a `figma.com/files/team/<id>/project/<id>/…` URL, and a
+  Figma URL naming no project is rejected by name.
+- **All three endpoints return everything at once** (`model: 'none'`), so no
+  command advertises a `--cursor` the endpoint does not have; the result still
+  comes back in the spine's uniform `PaginatedResult` shape.
+- **`branch_data` has no response field in the OpenAPI spec.** The parameter is
+  declared and documented but nothing types what it returns, so the extra data
+  is passed through unnamed rather than invented — it reaches `--json` intact.
+  Recorded under "Known spec defects" in `docs/research/figma-rest-api.md`.
+
+**Testable without Enterprise: yes.** No plan gate on any of the three; scopes
+`projects:read` and `project_metadata:read`, both reachable with a PAT, an
+OAuth token, and a plan token. The live suite needs `FIGMA_TEAM_ID`.
+
+## users
+
+**Endpoints covered — the whole Users tag (1 endpoint), no skips.**
+
+| Endpoint | Tier | CLI | MCP tool |
+| --- | --- | --- | --- |
+| `GET /v1/me` | 3 | `cyber-figma user me` | `figma_user_me` |
+
+**Deliberately not covered:** Figma's SCIM API. It is a separate API with its
+own base URL and auth, is explicitly "distinct from the Figma REST API", and is
+out of scope for a REST-API wrapper.
+
+### How the traps are handled
+
+- **Plan access tokens cannot reach it.** A plan token is minted for an
+  organization and is not tied to a user, so the refusal is certain: the api
+  refuses it up front, names the credential mode as the cause, and points at the
+  file-scoped alternative for verifying a plan token. Without this, the caller
+  gets a bare 403 that reads exactly like an expired PAT.
+- **`email` is unique to this endpoint** — it is in the output for that reason,
+  and the acceptance contract asserts it is present.
+
+**Testable without Enterprise: yes.** No plan gate; scope `current_user:read`.
+The live suite needs only `FIGMA_SYSTEM_TEST` plus a personal or OAuth
+credential — no extra configuration.
 
 ## webhooks
 
