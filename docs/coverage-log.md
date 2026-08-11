@@ -235,8 +235,6 @@ credential can see) and a personal or OAuth credential.
 **Endpoints covered — the whole Projects tag (3 endpoints), no skips.** The tag
 is entirely read-only; Figma's REST API creates and deletes no projects at all.
 
-| Endpoint | Tier | CLI | MCP tool |
-| --- | --- | --- | --- |
 | `GET /v1/teams/{team_id}/projects` | 2 | `cyber-figma project list [team]` | `figma_project_list` |
 | `GET /v1/projects/{project_id}/meta` | 3 | `cyber-figma project get <project>` | `figma_project_get` |
 | `GET /v1/projects/{project_id}/files` | 2 | `cyber-figma project files <project> [--branch-data]` | `figma_project_files` |
@@ -251,7 +249,6 @@ you, so the walk starts where the spine's `scope.ts` resolves it from
 (`--team` / `FIGMA_TEAM_ID` / `.agents/cyber-figma.json` / a pasted team URL) —
 none of that is reimplemented here.
 
-### How the traps are handled
 
 - **No team-id discovery endpoint.** Team resolution is the spine's
   `requireTeamId`, whose failure message says where in the URL bar to find one.
@@ -275,15 +272,12 @@ OAuth token, and a plan token. The live suite needs `FIGMA_TEAM_ID`.
 
 **Endpoints covered — the whole Users tag (1 endpoint), no skips.**
 
-| Endpoint | Tier | CLI | MCP tool |
-| --- | --- | --- | --- |
 | `GET /v1/me` | 3 | `cyber-figma user me` | `figma_user_me` |
 
 **Deliberately not covered:** Figma's SCIM API. It is a separate API with its
 own base URL and auth, is explicitly "distinct from the Figma REST API", and is
 out of scope for a REST-API wrapper.
 
-### How the traps are handled
 
 - **Plan access tokens cannot reach it.** A plan token is minted for an
   organization and is not tied to a user, so the refusal is certain: the api
@@ -296,6 +290,74 @@ out of scope for a REST-API wrapper.
 **Testable without Enterprise: yes.** No plan gate; scope `current_user:read`.
 The live suite needs only `FIGMA_SYSTEM_TEST` plus a personal or OAuth
 credential — no extra configuration.
+
+## variables
+
+**Endpoints covered — all three, no skips.**
+
+| Endpoint | Where |
+| --- | --- |
+| `GET /v1/files/{file_key}/variables/local` | `variable list`, `variable collections`, `variable get` |
+| `GET /v1/files/{file_key}/variables/published` | the same three with `--published` |
+| `POST /v1/files/{file_key}/variables` | `variable apply` |
+
+Both read endpoints answer with variables *and* collections in one payload, so
+the three read commands are views of one request, not three round trips.
+
+### CLI commands
+
+| Command | Notes |
+| `cyber-figma variable list <file> [--published] [--collection <id>]` | Variables as a list, not the id-keyed map Figma sends. `--collection` filters client-side; Figma has no server-side filter for it |
+| `cyber-figma variable collections <file> [--published]` | Collections with their modes. The published view omits modes, and the table says so instead of showing a blank cell |
+| `cyber-figma variable get <file> <variable-id> [--published]` | Resolves the `variableId` a node carries in `boundVariables`. Not a Figma endpoint — Figma has no by-id variable read, so this is the local read plus a lookup |
+| `cyber-figma variable apply <file> --changes <json\|@path> [--dry-run]` | The batch write. `--dry-run` validates and reports what it would touch without sending |
+
+### MCP tools
+
+`figma_variable_list`, `figma_variable_collection_list`, `figma_variable_get`,
+`figma_variable_apply` (which takes `dry_run`). Every description states the
+Enterprise requirement, because a client reads the tool list to decide whether
+to call at all.
+
+### Testable without an Enterprise plan?
+
+**No — not against Figma, reads included.** Variables is Enterprise-gated on
+read as well as write, `POST` additionally needs a Full seat or admin and Edit
+access on the file and is unreachable with a plan access token, and guests are
+excluded even on Enterprise. Nothing in this domain was verified against a live
+Figma account.
+
+What stands in for that:
+
+- `gateway.acceptance.test.ts` runs the domain's acceptance specs against an
+  in-memory Figma Variables backend whose `POST` really applies the batch — in
+  the documented array order, with the documented temporary-id mapping — rather
+  than echoing the request back.
+- `plan-gate.test.ts` proves the spine's plan-gate classification fires for
+  these paths: a 401 or 403 on any of the five operations is `plan_gated` with
+  exit code 7 and an Enterprise hint, while a 404 stays not-found (5) and a 429
+  stays rate-limited (6). The domain writes no status-code handling of its own.
+- `changes.ts` validates a change set before the request, against what Figma
+  documents: action shape per array, ids on UPDATE/DELETE, 40 modes per
+  collection, mode names ≤ 40 characters, 5000 variables per collection, unique
+  names within a collection, the forbidden `.{}` name characters, and value
+  types against the `resolvedType` of a variable created in the same request.
+  It never rejects something Figma would have accepted; anything that depends on
+  the file's current contents is left to Figma.
+- `gateway.system.ts` runs the same acceptance specs live, gated on
+  `FIGMA_VARIABLES_FILE_KEY` (an Enterprise file) and skipping cleanly without
+  it. Writes are gated a second time on `FIGMA_VARIABLES_WRITE`, because `POST
+  variables` mutates a real design file and REST has no publish or undo.
+
+### Deliberately not built
+
+- **Publishing.** Variables written through REST stay invisible to other files
+  until the library is published, and Figma exposes no publish endpoint — it is
+  a UI action. Every write path says so in its acknowledgement rather than
+  implying the change is live.
+- **Branch-key guard on `--published`.** That endpoint requires a main file key;
+  the flag description says so, but nothing here rejects a branch key, because a
+  key's branch-ness is not knowable without another request.
 
 ## webhooks
 
