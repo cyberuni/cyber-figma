@@ -1,0 +1,32 @@
+{
+	"$schema": "https://biomejs.dev/schemas/2.5.7/schema.json",
+	"extends": ["@repobuddy/biome/recommended"],
+	"files": {
+		"includes": [
+			"!**/dist",
+			"!**/node_modules",
+			"!**/.turbo",
+			"!skills-lock.json",
+			"!.agents",
+			"!**/.astro",
+			"!.cyberfleet"
+		]
+	},
+	"overrides": [
+		{
+			"includes": ["packages/cyber-figma/src/**/*.ts"],
+			"linter": {
+				"rules": {
+					"suspicious": {
+						"noConsole": {
+							"level": "error",
+							"options": {
+								"allow": ["log", "info", "warn", "error"]
+							}
+						}
+					}
+				}
+			}
+		}
+	]
+}
