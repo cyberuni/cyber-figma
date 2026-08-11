@@ -14,11 +14,18 @@ Research document for `cyber-figma`. This is the spec other pods implement again
 
 > Note on the spec's own status: Figma labels the OpenAPI specification a **beta** artifact "given the large surface area and complexity of the REST API" (openapi.yaml `info.description`). Where the spec and the prose docs disagree, prefer the prose docs and re-verify.
 
+**Full research record** — question framing, evidence log with confidence ratings, contradictions, and recheck triggers — lives in [`.research/figma-rest-api-surface/`](../../.research/figma-rest-api-surface/conclusion.md). Read that first if you need to know how confident a claim below is or when it should be revisited. This file is the reference inventory; the conclusion there is the verdict.
+
+> ## ⚠️ Do not code-generate a client from the spec
+>
+> The spec has verified defects that a generator will faithfully reproduce as bugs. See [Known spec defects](#known-spec-defects) before writing the gateway. The short version: **coerce integer query parameters at the boundary**, and type `err` as `string | null`.
+
 ---
 
 ## Table of contents
 
 - [Conventions](#conventions)
+- [Known spec defects](#known-spec-defects) ← read this before writing the client
 - [Pagination models](#pagination-models) ← read this before implementing any list command
 - [Files](#files) (6)
 - [Projects](#projects) (3)
@@ -50,6 +57,36 @@ Research document for `cyber-figma`. This is the spec other pods implement again
 - Most file-scoped endpoints accept **either a file key or a branch key**. The exceptions — which require a *main* file key because branches cannot publish — are called out per endpoint: `GET /v1/files/:key/components`, `/component_sets`, `/styles`, `/variables/published`, and all Dev Resources endpoints.
 - Many endpoints wrap their payload in a `{ status, error, meta }` envelope (`error: false` on success). Others return the payload at the top level. This is **inconsistent across the API** — the per-endpoint "Response" notes below say which. A gateway layer should normalize this.
 - Auth headers: `X-Figma-Token: <token>` for personal and plan access tokens; `Authorization: Bearer <token>` for OAuth 2.
+
+## Known spec defects
+
+Each of these was re-verified against OpenAPI **v0.41.0** on 2026-08-11 rather than taken from the issue title — one reported defect (`linkAccess`) no longer reproduces despite its issue still being open.
+
+| Defect | Status in v0.41.0 | Impact | What to do |
+| --- | --- | --- | --- |
+| **Integer params typed `number`** ([#86](https://github.com/figma/rest-api-spec/issues/86)) | **Still present, and broader than reported** | Generators emit float types, serialize `30` as `30.0`, and Figma returns `400 "'page_size' must be a valid number, received type String"` | Coerce to integer at the client boundary |
+| **`GetFileNodesResponse` missing `err`** ([#81](https://github.com/figma/rest-api-spec/issues/81)) | Still present | A spec-typed client discards a field the API returns | Add `err` manually |
+| **`err` typed as always-`null` on `GET images`** | Still present | On a `400`, `err` carries the diagnostic naming the invalid parameter — the most useful error detail the API gives | Type as `string \| null`; surface it in the 400 handler |
+| **Analytics param named `file_key` vs docs' `library_file_key`** ([#28](https://github.com/figma/rest-api-spec/issues/28)) | Still present | Cosmetic on the wire (path segment); affects generated naming only | Pick one deliberately |
+| **`GetFileResponse` missing `linkAccess`** ([#30](https://github.com/figma/rest-api-spec/issues/30)) | **Fixed** — present in v0.41.0, issue still open | none | Ignore the issue |
+
+The 15 parameters affected by the `number`/`integer` defect, across 6 endpoints:
+
+| Endpoint | Params typed `number` |
+| --- | --- |
+| `GET /v1/files/{file_key}` | `depth` |
+| `GET /v1/files/{file_key}/nodes` | `depth` |
+| `GET /v1/files/{file_key}/versions` | `page_size`, `before`, `after` |
+| `GET /v1/teams/{team_id}/components` | `page_size`, `before`, `after` |
+| `GET /v1/teams/{team_id}/component_sets` | `page_size`, `before`, `after` |
+| `GET /v1/teams/{team_id}/styles` | `page_size`, `before`, `after` |
+| `GET /v1/activity_logs` | `start_time`, `end_time`, `limit` |
+
+`scale` on `GET images` is also typed `number`, but legitimately so — it accepts fractional values 0.01–4.
+
+Newer endpoints (`GET /v1/ai_usage/daily`, `GET /v1/oembed`) correctly use `integer`, so this is un-backfilled legacy rather than a house convention.
+
+**The spec is also incomplete, not merely imprecise:** the entire Discovery endpoint is absent from it (see [Discovery](#discovery)). Absence cannot be detected by reading the spec, so other omissions may exist.
 
 ## Pagination models
 
@@ -96,7 +133,7 @@ Tag: `Files`. All read-only.
 
 `operationId: getFileNodes`. Params: `file_key` (path, ✅), **`ids` (query, ✅ — comma-separated node IDs)**, `version`, `depth`, `geometry`, `plugin_data`.
 
-**Response:** `name`, `role`, `lastModified`, `editorType`, `thumbnailUrl`, `version`, `nodes` (map node ID → `{ document, components, componentSets, schemaVersion, styles }`). Note `linkAccess` values documented here: `inherit` (default for team-project files), `view`, `edit`, `org_view`, `org_edit`.
+**Response:** `name`, `role`, `lastModified`, `editorType`, `thumbnailUrl`, `version`, `nodes` (map node ID → `{ document, components, componentSets, schemaVersion, styles }`), **and `err`** — which the prose docs document but the spec omits ([#81](https://github.com/figma/rest-api-spec/issues/81)); add it by hand. Note `linkAccess` values documented here: `inherit` (default for team-project files), `view`, `edit`, `org_view`, `org_edit`.
 
 **Pagination:** none. **Rate limit tier 1.**
 
@@ -118,7 +155,9 @@ Tag: `Files`. All read-only.
 | `contents_only` | query | | Exclude overlapping content (false is slower) |
 | `use_absolute_bounds` | query | | Full node dimensions ignoring crop — use to export text without cropping |
 
-**Response:** `{ err: null, images: { [nodeId]: string | null } }`. **`null` values are normal** — they mean *that node* failed to render (bad id, nothing renderable). Every requested node ID is guaranteed to appear as a key regardless.
+**Response:** `{ err: string | null, images: { [nodeId]: string | null }, status: number }`. **`null` values in `images` are normal** — they mean *that node* failed to render (bad id, nothing renderable), not that the request failed. Every requested node ID is guaranteed to appear as a key regardless, so a `null` must not be retried as an error.
+
+⚠️ The spec types `err` as always-`null`; the prose docs contradict it — on a `400`, **`err` names which parameter was invalid**. Type it `string | null` and surface it, or you throw away the API's best error detail.
 
 **Constraints:** rendered image URLs **expire after 30 days**. Images up to **32 megapixels**; larger are scaled down. **Rate limit tier 1.** Batch node IDs into one call — Figma explicitly calls this out as the way to avoid rate limits.
 
@@ -523,7 +562,7 @@ Standard error codes across the API (<https://developers.figma.com/docs/rest-api
 | --- | --- |
 | `400` | Invalid/malformed parameters — **also returned when the requested resources are too large and the request times out.** Reduce the number and size of objects requested |
 | `401` | Token missing or incorrect (used by Variables, Dev Resources, Analytics, Activity/Developer Logs, AI Usage, Payments; notably **not** declared on the Files endpoints) |
-| `403` | Valid request, refused — insufficient permissions, **or making an HTTP request instead of HTTPS** |
+| `403` | Valid request, refused — insufficient permissions, **or making an HTTP request instead of HTTPS**. The file-endpoints reference gives a third cause the global page omits: **"the developer / OAuth token is invalid or expired."** So **token expiry presents as 403, not 401** — do not map 403 to "permission denied" alone |
 | `404` | File or resource not found |
 | `429` | Rate limited. See below |
 | `500` | Internal error — "most commonly occurs for very large image render requests" |

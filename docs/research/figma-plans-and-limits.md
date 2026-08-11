@@ -13,6 +13,10 @@ Companion to [`figma-rest-api.md`](./figma-rest-api.md). This document covers wh
 
 ⚠️ Figma states directly: **"Figma reserves the right to change rate limits. Changes may affect specific endpoints, tiers, or plans."** The current limits took effect **17 November 2025**. Do not treat any number here as permanent.
 
+**Full research record** — evidence log with confidence ratings, contradictions, and recheck triggers — lives in [`.research/figma-plans-and-limits/`](../../.research/figma-plans-and-limits/conclusion.md). This file is the reference; the conclusion there is the verdict.
+
+> **If you re-derive the quota table below, parse the HTML.** Its meaning is carried in `rowspan` attributes, which markdown/text conversion silently drops — shifting every Dev/Full figure one plan-tier left. Two independent summarization passes made exactly that error before a structural parse caught it. The table here was verified against the raw HTML of **two** independently authored official pages.
+
 ---
 
 ## 1. The three axes of access
@@ -25,6 +29,10 @@ Access to any given call is the **intersection** of four things, not just one:
 4. **Scope** on the token, which never exceeds the user's actual Figma permissions: *"Scopes do not supersede the permissions granted to you by an organization or the owner of a project, team, or file."*
 
 A critical consequence, stated by Figma: a personal access token is tied to your **whole account, not a plan**. If you hold a Full seat in an Enterprise org but also have files in a Starter plan, requests against the *Starter* files get Starter limits. The limit follows **the plan the resource lives in**, not the best plan you belong to.
+
+**This is the rule that generates support tickets.** A documented field case: a Professional-plan user with a Full seat received `X-Figma-Rate-Limit-Type: low` and a `Retry-After` of ~4.5 days from the Images endpoint — apparently Viewer-tier treatment on a paid plan. The cause was not the API: an imported `.fig` file had been placed back under the user's *free* account, so the resource lived in a Starter context. Moving it into the Pro team restored `high` limits. ([forum thread](https://forum.figma.com/report-a-problem-6/rest-api-rate-limits-pro-plan-with-full-seat-still-getting-x-figma-rate-limit-type-low-and-multi-day-retry-after-51333))
+
+`cyber-figma` should assume users will read this as a bug. Surfacing `X-Figma-Plan-Tier` alongside the seat type — and naming file location as the likely cause — turns a multi-day mystery into a self-service fix.
 
 ---
 
@@ -202,7 +210,11 @@ The Discovery API is the one documented exception to the tier model: its own err
 
 Created at Settings → Security → *Generate new token*; you set expiration and scopes at creation. **Shown once.** From that screen you can see each token's scopes and its last-used time (approximate, "give or take a few minutes"), and revoke instantly.
 
-**Max expiration is 90 days** — this figure comes from the plan-access-tokens comparison table; the personal-access-tokens page itself does not enumerate the options. The **maximum number of PATs per account is undocumented**, and there is **no automatic rotation**.
+**Max expiration is 90 days** — note this figure is *not* stated on the personal-access-tokens page itself; it comes from the comparison table on the plan-access-tokens page, independently corroborated by community reports. The **maximum number of PATs per account is undocumented**, the selectable expiry options below 90 days are undocumented, and there is **no automatic rotation**.
+
+History worth knowing: a **"No expiration" option previously existed and was removed** as a security change. The 90-day ceiling is therefore relatively recent, and the resulting rotation burden on CI/CD pipelines is a live, well-attested community complaint that Figma has acknowledged as a feature request without committing to it. ([forum thread](https://forum.figma.com/suggest-a-feature-11/extended-no-expiration-personal-access-tokens-40595)) Plan for rotation; do not expect a non-expiring token to become available.
+
+⚠️ Per the file-endpoints error table, **an expired token presents as `403`, not `401`** — so expiry must be handled in the 403 path, not alongside authentication failures.
 
 ### Plan access tokens
 
@@ -252,7 +264,7 @@ Why:
 Design around its two real weaknesses:
 
 1. **Shared-budget rate limiting.** A PAT's quota is per-user, so every process using it competes. Ship `Retry-After`-aware retry with exponential backoff from day one, and surface `X-Figma-Rate-Limit-Type` and `X-Figma-Upgrade-Link` in the error message so a user hitting the View-seat 6/month wall understands *why*.
-2. **90-day expiry with no rotation.** Treat expiry as a normal, expected error state with an actionable message, not a generic 403.
+2. **90-day expiry with no rotation.** Treat expiry as a normal, expected error state, not an exceptional one. Because Figma reports it as a **`403`**, the 403 handler must distinguish "your token expired — generate a new one" from "you lack permission on this resource"; collapsing both into one message is the difference between a 10-second fix and a support ticket.
 
 **Support plan access tokens as a first-class second mode** (same `X-Figma-Token` header, so it costs almost nothing to add) for CI and org automation, and **explicitly document the five things plan tokens cannot do**. A connection-check command must not rely on `/v1/me` in this mode, since plan tokens cannot call it — fall back to something like `GET file meta` against a configured file.
 
