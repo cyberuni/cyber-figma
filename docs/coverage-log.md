@@ -59,3 +59,57 @@ itself when they are unset.
 ```sh
 FIGMA_SYSTEM_TEST=1 FIGMA_ACCESS_TOKEN=<pat> FIGMA_FILE_KEY=<key> FIGMA_NODE_ID=1-2 pnpm cf test:system
 ```
+
+## webhooks
+
+**Endpoints covered — all 7 in the Webhooks v2 family.**
+
+| Endpoint | CLI | MCP tool |
+| --- | --- | --- |
+| `GET /v2/webhooks` (context and plan forms) | `webhook list [--context] [--context-id] [--plan]` | `figma_webhook_list` |
+| `POST /v2/webhooks` ✏️ | `webhook create` | `figma_webhook_create` |
+| `GET /v2/webhooks/{id}` | `webhook get <id>` | `figma_webhook_get` |
+| `PUT /v2/webhooks/{id}` ✏️ | `webhook update <id>` | `figma_webhook_update` |
+| `DELETE /v2/webhooks/{id}` ✏️ | `webhook delete <id>` | `figma_webhook_delete` |
+| `GET /v2/webhooks/{id}/requests` | `webhook requests <id> [--failed-only]` | `figma_webhook_requests` |
+| `GET /v2/teams/{team_id}/webhooks` **[deprecated]** | `webhook list-team [team]` | — (deliberately not exposed) |
+
+**Deliberately skipped**
+
+- **No MCP tool for the deprecated team list.** Figma marks
+  `GET /v2/teams/{id}/webhooks` deprecated and superseded by
+  `GET /v2/webhooks?context=team`. The CLI keeps it as a compatibility shim for
+  tooling that still calls the old path, but an agent reading the tool listing
+  should only ever see the endpoint that replaced it.
+- **The deprecated `team_id` field on the create body.** Superseded by
+  `context`/`context_id`, which is what the domain sends.
+- **No confirmation prompt on delete.** The CLI is non-interactive by contract;
+  `webhook delete` is already an explicit command and goes through
+  `deleteIdempotently`, so a repeat delete reports `already_absent` rather than
+  failing.
+
+**Notes on the write surface**
+
+- A passcode is masked (`***`) by the api layer on every path out, including
+  `--json`, `--toon`, and MCP tool output — Figma blanks it on `GET` but echoes
+  the real one back from `POST` and `PUT`. The CLI takes it in with
+  `--passcode-env <VAR>` so it need not appear in shell history or `ps`.
+- Endpoint URLs are validated before Figma is asked to call them: absolute,
+  `https` (Figma answers plain HTTP with a 403), and within 2048 characters.
+- A 401/403 on a create names the role that context requires — team admin for a
+  team, "Can edit" for a project or file — plus the per-context cap (20/team,
+  5/project, 3/file) and the expired-PAT-reports-as-403 trap.
+- Creating `--status PAUSED` is surfaced in the CLI help, the create output, and
+  the MCP tool description, because an `ACTIVE` webhook makes Figma POST a PING
+  to the endpoint immediately.
+
+**Testable without an Enterprise plan: yes.** Webhooks v2 is available on every
+plan that has the REST API; reads need `webhooks:read` and writes need
+`webhooks:write` plus team-admin or edit rights on the context. The system
+suite runs reads on `FIGMA_TEAM_ID` alone; the lifecycle spec (create → get →
+update → delete → repeat delete) is opt-in on `FIGMA_WEBHOOK_SYSTEM_ENDPOINT`
+because it writes to a real team, and it creates the webhook `PAUSED` so
+nothing is ever delivered to that URL. Only the paginated form of
+`GET /v2/webhooks` needs a plan api id
+(`FIGMA_WEBHOOK_SYSTEM_PLAN_API_ID`); the `organization-<orgId>` form of it is
+the only part of the domain a Professional plan cannot reach.

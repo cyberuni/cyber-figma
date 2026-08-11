@@ -177,6 +177,8 @@ FIGMA_TEAM_ID=...     # team-scoped list pagination
 | `FIGMA_ANALYTICS_LIBRARY_FILE_KEY` | `src/analytics/*.system.ts` — the key of a published library file. Enterprise plan required |
 | `FIGMA_FILE_KEY` | `src/files/*.system.ts` — a file the credential can read. The suite spends tier-1 calls, so it also needs `FIGMA_NODE_ID` before it runs |
 | `FIGMA_NODE_ID` | `src/files/*.system.ts` — a node id in that file, dashed URL form accepted |
+| `FIGMA_WEBHOOK_SYSTEM_ENDPOINT` | opts the webhook lifecycle system spec in: an HTTPS URL a throwaway **PAUSED** webhook may point at on `FIGMA_TEAM_ID`. Nothing is ever delivered to it, and the webhook is deleted in a `finally` |
+| `FIGMA_WEBHOOK_SYSTEM_PLAN_API_ID` | opts the live webhook list-pagination spec in: a plan api id (`team-<teamId>` or `organization-<orgId>`), the only form of `GET /v2/webhooks` that paginates |
 
 Add a row here for every new system-test env var.
 

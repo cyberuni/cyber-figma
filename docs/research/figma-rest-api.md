@@ -311,6 +311,8 @@ A `PING` event fires immediately on creation unless you create it `PAUSED`.
 
 Webhook objects: `{ id, event_type, team_id (deprecated), context, context_id, plan_api_id, status, client_id: string|null (the OAuth app that registered it), passcode (**always empty string on GET responses**), endpoint, description: string|null }`.
 
+**`description` length, spec vs spec:** OpenAPI v0.41.0 contradicts itself — the `POST` and `PUT` request bodies say `description` has a "Max length 150 characters", while the `WebhookV2` response schema says 140 ([openapi.yaml](https://github.com/figma/rest-api-spec/blob/main/openapi/openapi.yaml), `postWebhook` requestBody vs `components.schemas.WebhookV2`). Neither number is safe to enforce client-side; let Figma answer for it.
+
 ### `GET /v2/teams/{team_id}/webhooks` — **[Deprecated]**
 
 `operationId: getTeamWebhooks`. Marked deprecated in the spec summary; superseded by `GET /v2/webhooks?context=team&context_id=…`. Response: `{ webhooks: [...] }`. Do not surface this in new tooling except as a compatibility shim.
