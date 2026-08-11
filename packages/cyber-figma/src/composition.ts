@@ -1,6 +1,7 @@
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import type { Command } from 'commander'
 import { activityLogDomain } from './activity-logs/index.js'
+import { aiUsageDomain } from './ai-usage/index.js'
 import { analyticsDomain } from './analytics/index.js'
 import { createClient, type FigmaClient } from './client.js'
 import { devResourceDomain } from './dev-resources/index.js'
@@ -47,6 +48,7 @@ export function defineDomain<Api>(module: DomainModule<Api>): AnyDomain {
  */
 export const DOMAINS: AnyDomain[] = [
 	activityLogDomain,
+	aiUsageDomain,
 	analyticsDomain,
 	devResourceDomain,
 	developerLogDomain,

@@ -8,6 +8,8 @@
  */
 export * from './activity-logs/api.js'
 export * from './activity-logs/gateway.js'
+export * from './ai-usage/api.js'
+export * from './ai-usage/gateway.js'
 export * from './analytics/api.js'
 export * from './analytics/gateway.js'
 export * from './cli-error.js'
