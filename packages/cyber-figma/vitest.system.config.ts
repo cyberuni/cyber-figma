@@ -7,5 +7,9 @@ export default defineConfig({
 	test: {
 		include: ['src/**/*.system.ts'],
 		testTimeout: 30_000,
+		// A build with no system suites yet — the spine, or a domain that has not
+		// written one — must pass rather than report "no test files found" as a
+		// failure of the command.
+		passWithNoTests: true,
 	},
 })
