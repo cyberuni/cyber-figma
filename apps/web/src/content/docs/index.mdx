@@ -1,9 +1,76 @@
 ---
 title: cyber-figma
-description: Agent skills, MCP tools, and a CLI for Figma.
+description: A CLI, a local MCP server, and an agent plugin for the Figma REST API — built for AI-assisted workflows.
+template: splash
+hero:
+  tagline: A CLI, a local MCP server, and an agent plugin for the Figma REST API — built for AI-assisted workflows.
+  actions:
+    - text: Installation
+      link: /cyber-figma/installation/
+      icon: right-arrow
+    - text: GitHub
+      link: https://github.com/cyberuni/cyber-figma
+      icon: external
+      variant: minimal
 ---
 
-Agent skills, MCP tools, and a CLI for the Figma REST API — built for AI-assisted workflows.
+import { Card, CardGrid } from '@astrojs/starlight/components';
 
-This site is a stub. The documentation pod fills in getting-started, CLI, MCP, skills,
-and reference sections as those surfaces land.
+:::caution[Under construction]
+`cyber-figma` is being built. The pages on this site that describe Figma itself —
+[Authentication](/cyber-figma/authentication/) and
+[Plans and limits](/cyber-figma/reference/plans-and-limits/) — are complete and sourced from
+Figma's own documentation. The per-command CLI reference and per-tool MCP reference are
+placeholders until those surfaces land; [API coverage](/cyber-figma/reference/api-coverage/)
+tracks what is implemented.
+:::
+
+## Three surfaces, one core
+
+<CardGrid>
+  <Card title="CLI" icon="seti:shell">
+    `cyber-figma <resource> <action>` for terminals, scripts, and agents that shell out.
+    [CLI reference →](/cyber-figma/cli/)
+  </Card>
+  <Card title="MCP server" icon="laptop">
+    A local stdio Model Context Protocol server exposing `figma_*` tools.
+    [MCP reference →](/cyber-figma/mcp/)
+  </Card>
+  <Card title="Agent plugin" icon="puzzle">
+    The published npm package *is* the plugin root — skills, MCP config, and manifests ship together.
+    [Installation →](/cyber-figma/installation/)
+  </Card>
+  <Card title="Agent-friendly output" icon="rocket">
+    Token-efficient TOON output, minimal default schemas, structured errors, and definitive empty states.
+  </Card>
+</CardGrid>
+
+The CLI and the MCP server call the same core operations, so nothing is CLI-only or
+MCP-only.
+
+## Why a wrapper
+
+The Figma REST API is unusually uneven, and most of the sharp edges are invisible until
+production:
+
+- **Four different pagination models** across the endpoint families — full-URL links,
+  integer id-cursors, opaque cursors with a `next_page` boolean, and opaque cursors with a
+  differently-named boolean. Most endpoints do not paginate at all and return the entire
+  set in one response.
+- **Access is an intersection**, not a single check: the plan the *resource* lives in, the
+  seat type of the *user*, the auth mode of the *token*, and the token's scopes.
+  See [Plans and limits](/cyber-figma/reference/plans-and-limits/).
+- **An expired token answers `403`, not `401`** — so the obvious error handling reports
+  "permission denied" for what is really "generate a new token".
+- **Rate limits are seat-based.** A View or Collab seat gets roughly 6 `GET file` calls
+  *per month*, on every plan including Enterprise.
+
+`cyber-figma` normalizes those into one pagination shape, one error shape, and messages
+that name the actual cause.
+
+## Where to start
+
+- [Installation](/cyber-figma/installation/) — install the CLI, the MCP server, or the plugin
+- [Authentication](/cyber-figma/authentication/) — personal access token vs plan access token vs OAuth 2
+- [Plans and limits](/cyber-figma/reference/plans-and-limits/) — what your plan and seat actually allow
+- [API coverage](/cyber-figma/reference/api-coverage/) — every Figma endpoint group and its status here

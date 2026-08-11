@@ -14,11 +14,14 @@ export default defineConfig({
 					href: 'https://github.com/cyberuni/cyber-figma',
 				},
 			],
-			// Sections are added by the docs pod as content lands under src/content/docs.
 			sidebar: [
 				{
 					label: 'Getting Started',
-					items: [{ label: 'Introduction', link: '/' }],
+					items: [
+						{ label: 'Introduction', link: '/' },
+						{ label: 'Installation', link: '/installation/' },
+						{ label: 'Authentication', link: '/authentication/' },
+					],
 				},
 			],
 			editLink: {
