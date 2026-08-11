@@ -185,6 +185,8 @@ FIGMA_DEV_RESOURCE_NODE_ID=...   # dev resources: also run the write round-trip 
 | `FIGMA_OEMBED_URL` | `src/oembed/*.system.ts` — a Figma file or published Make URL the credential can see. Not reachable with a plan access token |
 | `FIGMA_WEBHOOK_SYSTEM_ENDPOINT` | opts the webhook lifecycle system spec in: an HTTPS URL a throwaway **PAUSED** webhook may point at on `FIGMA_TEAM_ID`. Nothing is ever delivered to it, and the webhook is deleted in a `finally` |
 | `FIGMA_WEBHOOK_SYSTEM_PLAN_API_ID` | opts the live webhook list-pagination spec in: a plan api id (`team-<teamId>` or `organization-<orgId>`), the only form of `GET /v2/webhooks` that paginates |
+| `FIGMA_LIBRARY_FILE_KEY` | `src/library/*.system.ts` — a **main** file key whose components, component sets, and styles are published. Branch keys cannot publish |
+| `FIGMA_LIBRARY_MULTIPAGE` | `src/library/*.system.ts` — `1` when the team library exceeds one page of 30, enabling the multi-page specs |
 
 Add a row here for every new system-test env var.
 
