@@ -42,5 +42,8 @@
 	},
 	"engines": {
 		"node": ">=22"
+	},
+	"dependencies": {
+		"@figma/rest-api-spec": "^0.41.0"
 	}
 }
