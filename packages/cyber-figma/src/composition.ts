@@ -4,6 +4,7 @@ import { activityLogDomain } from './activity-logs/index.js'
 import { aiUsageDomain } from './ai-usage/index.js'
 import { analyticsDomain } from './analytics/index.js'
 import { createClient, type FigmaClient } from './client.js'
+import { commentDomain } from './comments/index.js'
 import { devResourceDomain } from './dev-resources/index.js'
 import { developerLogDomain } from './developer-logs/index.js'
 import { discoveryDomain } from './discovery/index.js'
@@ -53,6 +54,7 @@ export const DOMAINS: AnyDomain[] = [
 	activityLogDomain,
 	aiUsageDomain,
 	analyticsDomain,
+	commentDomain,
 	devResourceDomain,
 	developerLogDomain,
 	discoveryDomain,
