@@ -44,6 +44,8 @@
 		"node": ">=22"
 	},
 	"dependencies": {
-		"@figma/rest-api-spec": "^0.41.0"
+		"@figma/rest-api-spec": "^0.41.0",
+		"@modelcontextprotocol/sdk": "^1.30.0",
+		"commander": "^15.0.0"
 	}
 }
