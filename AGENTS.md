@@ -182,6 +182,7 @@ FIGMA_DEV_RESOURCE_NODE_ID=...   # dev resources: also run the write round-trip 
 | `FIGMA_DEV_RESOURCE_NODE_ID` | `src/dev-resources/*.system.ts` — optional; a node in that file, which adds the create/update/delete round-trip |
 | `FIGMA_FILE_KEY` | `src/files/*.system.ts` — a file the credential can read. The suite spends tier-1 calls, so it also needs `FIGMA_NODE_ID` before it runs |
 | `FIGMA_NODE_ID` | `src/files/*.system.ts` — a node id in that file, dashed URL form accepted |
+| `FIGMA_OEMBED_URL` | `src/oembed/*.system.ts` — a Figma file or published Make URL the credential can see. Not reachable with a plan access token |
 | `FIGMA_WEBHOOK_SYSTEM_ENDPOINT` | opts the webhook lifecycle system spec in: an HTTPS URL a throwaway **PAUSED** webhook may point at on `FIGMA_TEAM_ID`. Nothing is ever delivered to it, and the webhook is deleted in a `finally` |
 | `FIGMA_WEBHOOK_SYSTEM_PLAN_API_ID` | opts the live webhook list-pagination spec in: a plan api id (`team-<teamId>` or `organization-<orgId>`), the only form of `GET /v2/webhooks` that paginates |
 
