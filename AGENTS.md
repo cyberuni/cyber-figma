@@ -179,6 +179,8 @@ FIGMA_DEV_RESOURCE_NODE_ID=...   # dev resources: also run the write round-trip 
 | `FIGMA_DEVELOPER_LOGS_SYSTEM_TEST` | `src/developer-logs/*.system.ts` — opt-in. Needs Enterprise + Governance+, an org admin, and `FIGMA_AUTH_MODE=plan`; no other credential reaches it |
 | `FIGMA_AI_USAGE_SYSTEM_TEST` | `src/ai-usage/*.system.ts` — opt-in. Needs Enterprise, an org admin, and `FIGMA_AUTH_MODE=plan` |
 | `FIGMA_AI_USAGE_START_DATE` / `FIGMA_AI_USAGE_END_DATE` | optional window for the AI usage suite (`YYYY-MM-DD`, no earlier than 2025-12-01) |
+| `FIGMA_DISCOVERY_SYSTEM_TEST` | `src/discovery/*.system.ts` — opt-in. Needs Enterprise + Governance+, an org admin, and `FIGMA_AUTH_MODE=oauth`; only OAuth 2 reaches it |
+| `FIGMA_DISCOVERY_START_DATE` / `FIGMA_DISCOVERY_END_DATE` | optional window for the discovery suite (ISO 8601 UTC; defaults to a two-hour window a day back) |
 | `FIGMA_ANALYTICS_LIBRARY_FILE_KEY` | `src/analytics/*.system.ts` — the key of a published library file. Enterprise plan required |
 | `FIGMA_DEV_RESOURCE_FILE_KEY` | `src/dev-resources/*.system.ts` — a **main** file key, never a branch key |
 | `FIGMA_DEV_RESOURCE_NODE_ID` | `src/dev-resources/*.system.ts` — optional; a node in that file, which adds the create/update/delete round-trip |
