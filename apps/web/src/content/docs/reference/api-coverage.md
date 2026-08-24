@@ -9,10 +9,12 @@ sidebar:
 [Figma REST API](https://developers.figma.com/docs/rest-api/). This page tracks what is
 implemented, group by group.
 
-:::caution[Nothing is implemented yet]
-Every row below is **planned**. `cyber-figma` is at the scaffolding stage; the domain pods
-flip these statuses as each resource lands. If a row still says *Planned*, the command and
-the tool do not exist yet.
+:::caution[Verified against doubles, not against a live Enterprise org]
+Every group below is implemented, but the six **Enterprise**-gated groups — Variables,
+Library Analytics, Activity Logs, Developer Logs, AI Usage, and Discovery — were built and
+tested entirely against response doubles derived from the documentation. Their request
+shapes have never been proven against the real endpoints. Treat them as less trustworthy
+than the ungated groups until someone verifies them on an Enterprise org.
 :::
 
 Coverage is measured against Figma's own
@@ -26,11 +28,11 @@ the prose docs win.
 | --- | --- |
 | ✅ | Fully covered — every operation in the group is reachable |
 | 🟡 | Partially covered |
-| 📋 | **Planned** — not implemented yet |
+| ✅ | Planned — not implemented yet |
 | 🚫 | Out of scope — deliberately not wrapped |
 
-Every operation, once implemented, is reachable from **both** the CLI and the MCP server.
-They share the same core, so nothing will be CLI-only or MCP-only.
+Every operation is reachable from **both** the CLI and the MCP server, with one exception
+noted below. They share the same core, so nothing is CLI-only by accident.
 
 ## Surface size
 
@@ -46,27 +48,28 @@ resources. Any "edit the design" capability lives in the Plugin API, not here.
 
 | Endpoint group | Ops | Status | CLI namespace | Rate tier | Plan gate |
 | --- | --- | --- | --- | --- | --- |
-| [Files](#files) | 6 | 📋 Planned | `file` | 1–3 | — |
-| [Projects](#projects) | 3 | 📋 Planned | `project` | 2–3 | — |
-| [Comments](#comments) | 3 | 📋 Planned | `comment` | 2 | — |
-| [Comment Reactions](#comment-reactions) | 3 | 📋 Planned | `comment` | 2 | — |
-| [Users](#users) | 1 | 📋 Planned | `user` | 3 | — |
-| [Components, Component Sets, Styles](#components-component-sets-and-styles) | 9 | 📋 Planned | `component`, `component-set`, `style` | 3 | — |
-| [Webhooks v2](#webhooks-v2) | 7 | 📋 Planned | `webhook` | 2 | — |
-| [Variables](#variables) | 3 | 📋 Planned | `variable` | 2–3 | **Enterprise** |
-| [Dev Resources](#dev-resources) | 4 | 📋 Planned | `dev-resource` | 2 | — |
-| [Library Analytics](#library-analytics) | 6 | 📋 Planned | `analytics` | 3 | **Enterprise** |
-| [Activity Logs](#activity-logs) | 1 | 📋 Planned | `activity-log` | 3 | **Enterprise**, org admin |
-| [Developer Logs](#developer-logs) | 1 | 📋 Planned | `developer-log` | 3 | **Enterprise + Governance+** |
-| [AI Usage](#ai-usage) | 1 | 📋 Planned | `ai-usage` | 3 | **Enterprise**, org admin |
-| [Discovery](#discovery) | 1 | 📋 Planned | `discovery` | 2 | **Enterprise + Governance+** |
-| [Payments](#payments) | 1 | 📋 Planned | `payment` | 3 | — |
-| [oEmbed](#oembed) | 1 | 📋 Planned | `oembed` | — | — |
+| [Files](#files) | 6 | ✅ | `file` | 1–3 | — |
+| [Projects](#projects) | 3 | ✅ | `project` | 2–3 | — |
+| [Comments](#comments) | 3 | ✅ | `comment` | 2 | — |
+| [Comment Reactions](#comment-reactions) | 3 | ✅ | `comment` | 2 | — |
+| [Users](#users) | 1 | ✅ | `user` | 3 | — |
+| [Components, Component Sets, Styles](#components-component-sets-and-styles) | 9 | ✅ | `component`, `component-set`, `style` | 3 | — |
+| [Webhooks v2](#webhooks-v2) | 7 | ✅ | `webhook` | 2 | — |
+| [Variables](#variables) | 3 | ✅ | `variable` | 2–3 | **Enterprise** |
+| [Dev Resources](#dev-resources) | 4 | ✅ | `dev-resource` | 2 | — |
+| [Library Analytics](#library-analytics) | 6 | ✅ | `analytics` | 3 | **Enterprise** |
+| [Activity Logs](#activity-logs) | 1 | ✅ | `activity-log` | 3 | **Enterprise**, org admin |
+| [Developer Logs](#developer-logs) | 1 | ✅ | `developer-log` | 3 | **Enterprise + Governance+** |
+| [AI Usage](#ai-usage) | 1 | ✅ | `ai-usage` | 3 | **Enterprise**, org admin |
+| [Discovery](#discovery) | 1 | ✅ | `discovery` | 2 | **Enterprise + Governance+** |
+| [Payments](#payments) | 1 | ✅ | `payment` | 3 | — |
+| [oEmbed](#oembed) | 1 | ✅ | `oembed` | — | — |
 | [OAuth token endpoints](#oauth-token-endpoints) | 2 | 🚫 Deferred | — | — | — |
 | [SCIM](#scim) | — | 🚫 Out of scope | — | — | Organization+ |
 
-CLI namespaces are the intended shape and are not final until each domain lands. Plan gates
-and rate tiers are explained on
+Each CLI namespace is documented in the [command reference](/cyber-figma/cli/commands/), and
+its tools in the [tool reference](/cyber-figma/mcp/tools/). Plan gates and rate tiers are
+explained on
 [Plans and limits](/cyber-figma/reference/plans-and-limits/).
 
 ## Operation-level inventory
@@ -77,12 +80,12 @@ Six read-only operations.
 
 | Operation | Endpoint | Tier | Status |
 | --- | --- | --- | --- |
-| Get file JSON | `GET /v1/files/{file_key}` | 1 | 📋 |
-| Get JSON for specific nodes | `GET /v1/files/{file_key}/nodes` | 1 | 📋 |
-| Render images of nodes | `GET /v1/images/{file_key}` | 1 | 📋 |
-| Get image fills | `GET /v1/files/{file_key}/images` | 2 | 📋 |
-| Get file metadata | `GET /v1/files/{file_key}/meta` | 3 | 📋 |
-| Get version history | `GET /v1/files/{file_key}/versions` | 2 | 📋 |
+| Get file JSON | `GET /v1/files/{file_key}` | 1 | ✅ |
+| Get JSON for specific nodes | `GET /v1/files/{file_key}/nodes` | 1 | ✅ |
+| Render images of nodes | `GET /v1/images/{file_key}` | 1 | ✅ |
+| Get image fills | `GET /v1/files/{file_key}/images` | 2 | ✅ |
+| Get file metadata | `GET /v1/files/{file_key}/meta` | 3 | ✅ |
+| Get version history | `GET /v1/files/{file_key}/versions` | 2 | ✅ |
 
 Things a wrapper has to get right here:
 
@@ -104,9 +107,9 @@ Things a wrapper has to get right here:
 
 | Operation | Endpoint | Tier | Status |
 | --- | --- | --- | --- |
-| Get projects in a team | `GET /v1/teams/{team_id}/projects` | 2 | 📋 |
-| Get project metadata | `GET /v1/projects/{project_id}/meta` | 3 | 📋 |
-| Get files in a project | `GET /v1/projects/{project_id}/files` | 2 | 📋 |
+| Get projects in a team | `GET /v1/teams/{team_id}/projects` | 2 | ✅ |
+| Get project metadata | `GET /v1/projects/{project_id}/meta` | 3 | ✅ |
+| Get files in a project | `GET /v1/projects/{project_id}/files` | 2 | ✅ |
 
 There is **no endpoint to discover a team ID from a token** — Figma says so explicitly. The
 ID must be read out of the team page URL, which is why `FIGMA_TEAM_ID` exists.
@@ -115,9 +118,9 @@ ID must be read out of the team page URL, which is why `FIGMA_TEAM_ID` exists.
 
 | Operation | Endpoint | Status |
 | --- | --- | --- |
-| Get comments in a file | `GET /v1/files/{file_key}/comments` | 📋 |
-| Add a comment ✏️ | `POST /v1/files/{file_key}/comments` | 📋 |
-| Delete a comment ✏️ | `DELETE /v1/files/{file_key}/comments/{comment_id}` | 📋 |
+| Get comments in a file | `GET /v1/files/{file_key}/comments` | ✅ |
+| Add a comment ✏️ | `POST /v1/files/{file_key}/comments` | ✅ |
+| Delete a comment ✏️ | `DELETE /v1/files/{file_key}/comments/{comment_id}` | ✅ |
 
 Replies must target a **root comment** — you cannot reply to a reply. Only the author may
 delete a comment. Writing comments requires `file_comments:write`, which **plan access
@@ -127,9 +130,9 @@ tokens cannot use**.
 
 | Operation | Endpoint | Status |
 | --- | --- | --- |
-| Get reactions | `GET /v1/files/{file_key}/comments/{comment_id}/reactions` | 📋 |
-| Add a reaction ✏️ | `POST /v1/files/{file_key}/comments/{comment_id}/reactions` | 📋 |
-| Delete a reaction ✏️ | `DELETE /v1/files/{file_key}/comments/{comment_id}/reactions` | 📋 |
+| Get reactions | `GET /v1/files/{file_key}/comments/{comment_id}/reactions` | ✅ |
+| Add a reaction ✏️ | `POST /v1/files/{file_key}/comments/{comment_id}/reactions` | ✅ |
+| Delete a reaction ✏️ | `DELETE /v1/files/{file_key}/comments/{comment_id}/reactions` | ✅ |
 
 `emoji` is an **emoji shortcode** (`:heart:`, `:+1::skin-tone-2:`), and on the `DELETE` it
 is a required **query** parameter rather than a path segment. Only the person who made a
@@ -139,7 +142,7 @@ reaction may remove it.
 
 | Operation | Endpoint | Status |
 | --- | --- | --- |
-| Get the current user | `GET /v1/me` | 📋 |
+| Get the current user | `GET /v1/me` | ✅ |
 
 The `email` field appears **only** on this endpoint. It is the natural "verify my
 credentials" command, but **plan access tokens cannot call it**, so a connection check must
@@ -155,7 +158,7 @@ Three parallel families with identical shapes — nine operations, all read-only
 | Component Sets | `GET /v1/teams/{team_id}/component_sets` | `GET /v1/files/{file_key}/component_sets` | `GET /v1/component_sets/{key}` |
 | Styles | `GET /v1/teams/{team_id}/styles` | `GET /v1/files/{file_key}/styles` | `GET /v1/styles/{key}` |
 
-All nine are 📋 Planned. **They return only *published* library content**, not every
+**They return only *published* library content**, not every
 component in a file. The file-scoped variants require a **main file key, not a branch
 key**, because branches cannot publish.
 
@@ -165,16 +168,17 @@ The only family not on `/v1/`. Four reads, three writes.
 
 | Operation | Endpoint | Status |
 | --- | --- | --- |
-| Get webhooks by context or plan | `GET /v2/webhooks` | 📋 |
-| Create a webhook ✏️ | `POST /v2/webhooks` | 📋 |
-| Get a webhook | `GET /v2/webhooks/{webhook_id}` | 📋 |
-| Update a webhook ✏️ | `PUT /v2/webhooks/{webhook_id}` | 📋 |
-| Delete a webhook ✏️ | `DELETE /v2/webhooks/{webhook_id}` | 📋 |
-| Get webhook requests | `GET /v2/webhooks/{webhook_id}/requests` | 📋 |
-| Get team webhooks — **deprecated** | `GET /v2/teams/{team_id}/webhooks` | 🚫 |
+| Get webhooks by context or plan | `GET /v2/webhooks` | ✅ |
+| Create a webhook ✏️ | `POST /v2/webhooks` | ✅ |
+| Get a webhook | `GET /v2/webhooks/{webhook_id}` | ✅ |
+| Update a webhook ✏️ | `PUT /v2/webhooks/{webhook_id}` | ✅ |
+| Delete a webhook ✏️ | `DELETE /v2/webhooks/{webhook_id}` | ✅ |
+| Get webhook requests | `GET /v2/webhooks/{webhook_id}/requests` | ✅ |
+| Get team webhooks — **deprecated** | `GET /v2/teams/{team_id}/webhooks` | ✅ |
 
-The deprecated team-scoped list is superseded by `GET /v2/webhooks?context=team&context_id=…`
-and will not be surfaced except, if needed, as a compatibility shim.
+The deprecated team-scoped list is superseded by `GET /v2/webhooks?context=team&context_id=…`.
+It is surfaced as `webhook list-team` so an existing script keeps working, and it is the one
+operation with no MCP tool: an agent should never be steered onto a superseded endpoint.
 
 Event types: `PING`, `FILE_UPDATE`, `FILE_VERSION_UPDATE`, `FILE_DELETE`,
 `LIBRARY_PUBLISH`, `FILE_COMMENT`, `DEV_MODE_STATUS_UPDATE`. A `PUT` does **not** accept
@@ -189,9 +193,9 @@ API is the only management surface.
 
 | Operation | Endpoint | Tier | Status |
 | --- | --- | --- | --- |
-| Get local variables | `GET /v1/files/{file_key}/variables/local` | 2 | 📋 |
-| Get published variables | `GET /v1/files/{file_key}/variables/published` | 2 | 📋 |
-| Create / modify / delete ✏️ | `POST /v1/files/{file_key}/variables` | **3** | 📋 |
+| Get local variables | `GET /v1/files/{file_key}/variables/local` | 2 | ✅ |
+| Get published variables | `GET /v1/files/{file_key}/variables/published` | 2 | ✅ |
+| Create / modify / delete ✏️ | `POST /v1/files/{file_key}/variables` | **3** | ✅ |
 
 `GET local` is the only place to read **mode values**; the published endpoint omits modes.
 The bulk write applies its arrays in a fixed order — collections, then modes, then
@@ -210,10 +214,10 @@ collection**.
 
 | Operation | Endpoint | Status |
 | --- | --- | --- |
-| Get dev resources | `GET /v1/files/{file_key}/dev_resources` | 📋 |
-| Bulk create ✏️ | `POST /v1/dev_resources` | 📋 |
-| Bulk update ✏️ | `PUT /v1/dev_resources` | 📋 |
-| Delete a dev resource ✏️ | `DELETE /v1/files/{file_key}/dev_resources/{dev_resource_id}` | 📋 |
+| Get dev resources | `GET /v1/files/{file_key}/dev_resources` | ✅ |
+| Bulk create ✏️ | `POST /v1/dev_resources` | ✅ |
+| Bulk update ✏️ | `PUT /v1/dev_resources` | ✅ |
+| Delete a dev resource ✏️ | `DELETE /v1/files/{file_key}/dev_resources/{dev_resource_id}` | ✅ |
 
 Unlike variables, components, and styles, dev resources **do not need to be published** —
 they are live immediately.
@@ -228,7 +232,7 @@ resources**, and a duplicate URL on the same node. A client must inspect `errors
 ### Library Analytics
 
 Six read-only endpoints under `GET /v1/analytics/libraries/{file_key}/…`, all
-**Enterprise-only**, all 📋 Planned.
+**Enterprise-only**.
 
 | Path suffix | `group_by` (required) | Date range? |
 | --- | --- | --- |
@@ -249,7 +253,7 @@ see are **name-obfuscated** rather than dropped — they appear as `Team not vis
 
 | Operation | Endpoint | Status |
 | --- | --- | --- |
-| Get activity logs | `GET /v1/activity_logs` | 📋 |
+| Get activity logs | `GET /v1/activity_logs` | ✅ |
 
 **Enterprise-only, org admins only.** Requires org OAuth 2 with `org:activity_log_read`, or
 a plan access token — the spec does **not** list personal access tokens for this endpoint.
@@ -264,7 +268,7 @@ means shifting the `start_time` / `end_time` window and using `order`.
 
 | Operation | Endpoint | Status |
 | --- | --- | --- |
-| Get developer logs | `POST /v1/developer_logs` | 📋 |
+| Get developer logs | `POST /v1/developer_logs` | ✅ |
 
 A **`POST` that reads** — filters go in the body, not the query string. It is not a
 mutation. **Enterprise + Governance+, org admins only, plan access token only.** Records are
@@ -274,7 +278,7 @@ retained **30 days only**, and the logs cover both REST API and **MCP server** r
 
 | Operation | Endpoint | Status |
 | --- | --- | --- |
-| Get daily AI usage | `GET /v1/ai_usage/daily` | 📋 |
+| Get daily AI usage | `GET /v1/ai_usage/daily` | ✅ |
 
 **Enterprise-only, org admins, plan access token only.** `start_date` must be on or after
 **2025-12-01** and no more than 366 days before today. A `user_email` matching no Figma user
@@ -285,7 +289,7 @@ figures are unreliable.
 
 | Operation | Endpoint | Status |
 | --- | --- | --- |
-| Get text events | `GET /v1/discovery` | 📋 |
+| Get text events | `GET /v1/discovery` | ✅ |
 
 :::caution[Not in the OpenAPI spec]
 Discovery is documented only in prose, at
@@ -304,7 +308,7 @@ second"*.
 
 | Operation | Endpoint | Status |
 | --- | --- | --- |
-| Validate a purchase | `GET /v1/payments` | 📋 |
+| Validate a purchase | `GET /v1/payments` | ✅ |
 
 **Personal access token only** — the docs state plainly that the Payments REST API does not
 support OAuth 2, and the spec lists no plan-token support either. You can only query
@@ -314,7 +318,7 @@ resources you own.
 
 | Operation | Endpoint | Status |
 | --- | --- | --- |
-| Get an oEmbed response | `GET /v1/oembed` | 📋 |
+| Get an oEmbed response | `GET /v1/oembed` | ✅ |
 
 Follows the [oEmbed 1.0 spec](https://oembed.com/). Requires `file_metadata:read` and is
 **not usable with a plan access token**. Distinctively, it is the only endpoint in the spec
@@ -335,24 +339,32 @@ own bearer token. It manages user lifecycle, not the design surface a REST wrapp
 
 ## Pagination
 
-Figma uses **four different pagination models**, which is the single biggest source of
-implementation drift. `cyber-figma` normalizes them into one options shape and one result
-shape.
+Figma has no single pagination model. Six different ones are in use across the API, which is
+the single biggest source of implementation drift. `cyber-figma` names each one and
+normalizes the ends: one options shape in, one result shape out, whatever the endpoint
+underneath does.
 
 | Model | Where | Request | Response |
 | --- | --- | --- | --- |
-| **A. Full-URL links** | File versions, comment reactions, `GET /v2/webhooks` with `plan_api_id` | `page_size`, `before`, `after`, or `cursor` | `pagination: { prev_page?, next_page? }` — complete URLs to call |
-| **B. Integer id-cursor** | Team components, component sets, styles | `page_size` (default 30, max **1000** for components), `before` / `after` — mutually exclusive, opaque | `meta.cursor: { before?, after? }` |
-| **C. Opaque cursor + boolean** | All 6 Library Analytics endpoints | `cursor` | `{ rows, next_page: boolean, cursor? }`, max **1000 rows/page** |
-| **D. Opaque cursor + a "more?" boolean** | AI Usage, Developer Logs | `cursor`, `limit` | AI Usage: `next_cursor` + `has_next_page`. Developer Logs: `cursor` + `has_more`. **Same model, different field names.** |
+| **URL cursor** | Comment reactions, `GET /v2/webhooks` with `plan_api_id` | `cursor` | `pagination: { prev_page?, next_page? }` — complete URLs to call |
+| **URL page** | File versions | `page_size`, `before` / `after` | `pagination: { prev_page?, next_page? }` |
+| **Id cursor** | Team components, component sets, styles | `page_size` (default 30, max **1000**), `before` / `after` — mutually exclusive, opaque | `meta.cursor: { before?, after? }` integers |
+| **Row cursor** | All 6 Library Analytics endpoints | `cursor` | `{ rows, next_page: boolean, cursor? }`, max **1000 rows/page** |
+| **Next cursor** | AI Usage | `cursor`, `limit` | `{ rows, next_cursor, has_next_page }` — `next_cursor` is the empty string once exhausted |
+| **Meta cursor** | Developer Logs, in the **body** | `cursor`, `limit` | `meta: { items, cursor, has_more }` |
+| **None** | Everything else | — | The complete set in one response |
+
+Each list endpoint declares its model once, and the CLI flags and MCP tool parameters are
+derived from that declaration. A command therefore cannot advertise a `--cursor` its endpoint
+does not have.
 
 **Most endpoints do not paginate at all** and return the complete set in one response —
 including `GET file`, `GET file nodes`, `GET images`, `GET file comments`, `GET team
 projects`, `GET project files`, every Variables endpoint, and every Dev Resources endpoint.
 On a large file or team that is a real scaling hazard, not a convenience.
 
-`GET /v1/activity_logs` is its own case: it has a `limit` (default **1000**) but no usable
-cursor.
+`GET /v1/activity_logs` is its own case: it has a `limit` (default **1000**) and reports
+`has_more`, but no usable cursor — page it by shifting the time window.
 
 ## Known spec defects
 
