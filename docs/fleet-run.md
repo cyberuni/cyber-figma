@@ -73,37 +73,36 @@ Per-domain endpoint detail — what each covered, skipped, and why — is in
 - 988 tests across 89 files; 16 acceptance-spec factories; 15 system suites, all
   gated behind `FIGMA_SYSTEM_TEST` and skipping cleanly when unset.
 - 8 changesets queued in `.changeset/`. **Nothing has been published to npm yet.**
-- The docs site builds; its CLI and MCP reference pages are marked placeholders.
+- The docs site builds. Its CLI and MCP reference pages were filled in from the
+  shipped surface on 2026-08-24 (`cli/commands.md`, `mcp/tools.md`), and the
+  API-coverage board now marks every group as covered — with the standing caveat
+  that the six Enterprise groups are double-verified only.
 
 ## NEXT
 
 Ordered by what unblocks the most.
 
-1. **Wave 4 — docs reference pages.** `apps/web` still has placeholder CLI and
-   MCP reference sections, and its API-coverage table still marks every domain
-   as planned. All 15 domains have now landed, so both need filling in from what
-   actually shipped. Structure and nav are already in place for this.
-2. **First publish.** 8 changesets are queued and unreleased. Decide the initial
+1. **First publish.** 8 changesets are queued and unreleased. Decide the initial
    version, run the release workflow, and confirm the plugin tarball is complete
    — `npm pack --dry-run` must show every path in `packages/cyber-figma`'s
    `files` array, or the plugin will not reach consumers.
-3. **Live verification.** No system suite has ever run against a real Figma
+2. **Live verification.** No system suite has ever run against a real Figma
    account. Everything is verified against doubles only. Run
    `FIGMA_SYSTEM_TEST=1 FIGMA_ACCESS_TOKEN=<pat> pnpm cf test:system` and expect
    to find real drift — this is the single largest correctness risk in the repo.
-4. **The Enterprise gap — read this before trusting those domains.** Variables,
+3. **The Enterprise gap — read this before trusting those domains.** Variables,
    Library Analytics, Activity Logs, Developer Logs, AI Usage, and Discovery are
    Enterprise-gated, and three are org-admin-only. They were built entirely
    against doubles derived from documentation, by pods that could not call the
    real endpoints even once. Their request shapes are unproven. Do not treat
    them as equally trustworthy to the ungated domains, and say so in the docs
    until someone verifies them on an Enterprise org.
-5. **Rate limits are a real hazard when testing Files.** `GET file`,
+4. **Rate limits are a real hazard when testing Files.** `GET file`,
    `GET file nodes`, and `GET images` are Figma's costliest tier, and a View or
    Collab seat gets roughly 6 calls *per month* on every plan. A careless system
    run can exhaust a month's quota. Prefer `GET file meta` (tier 3) for
    exploration.
-6. **GitHub repo settings.** Branch protection, required checks, and the Pages
+5. **GitHub repo settings.** Branch protection, required checks, and the Pages
    source for `deploy-docs.yml` have not been configured.
 
 ## Resuming
