@@ -5,13 +5,6 @@ sidebar:
   order: 1
 ---
 
-:::caution[Placeholder — no tools exist yet]
-The per-tool reference is **not written**, because the tools have not been built. The
-naming convention, the output contract, and the host wiring below are settled; the tool
-catalog fills in as each resource domain lands.
-[API coverage](/cyber-figma/reference/api-coverage/) is the live status board.
-:::
-
 `cyber-figma` ships a **stdio** MCP server in the same package as the CLI. Both call the
 same core operations, so nothing is MCP-only or CLI-only.
 
@@ -125,31 +118,31 @@ npx @modelcontextprotocol/inspector \
 
 ## Tool catalog
 
-:::caution[Placeholder]
-No tools are implemented yet. The table below records the naming convention and the planned
-namespaces so the catalog can be filled in domain by domain.
-:::
+Tools are named `figma_<resource>_<action>`. All 51 are listed in the
+[tool reference](/cyber-figma/mcp/tools/), which gives each one's parameters and the plan or
+credential it needs.
 
-Tools are named `figma_<resource>_<action>` — for example `figma_file_get`,
-`figma_comment_list`, `figma_webhook_create`.
-
-| Namespace | Planned tools cover | Status |
+| Namespace | Tools | Covers |
 | --- | --- | --- |
-| `figma_file_*` | File JSON, node JSON, image rendering, image fills, metadata, versions | 📋 Planned |
-| `figma_project_*` | Team projects, project metadata, project files | 📋 Planned |
-| `figma_comment_*` | Comments and comment reactions | 📋 Planned |
-| `figma_user_*` | The authenticated user | 📋 Planned |
-| `figma_component_*` / `figma_component_set_*` / `figma_style_*` | Published library content | 📋 Planned |
-| `figma_webhook_*` | Webhooks v2 | 📋 Planned |
-| `figma_variable_*` | Variables (**Enterprise**) | 📋 Planned |
-| `figma_dev_resource_*` | Dev Mode resource links | 📋 Planned |
-| `figma_analytics_*` | Library Analytics (**Enterprise**) | 📋 Planned |
-| `figma_activity_log_*` / `figma_developer_log_*` / `figma_ai_usage_*` / `figma_discovery_*` | Org-admin reporting (**Enterprise**) | 📋 Planned |
-| `figma_payment_*` | Purchase validation | 📋 Planned |
-| `figma_oembed_*` | oEmbed metadata | 📋 Planned |
+| `figma_file_*` | 6 | File JSON, node JSON, image rendering, image fills, metadata, versions |
+| `figma_project_*` | 3 | Team projects, project metadata, project files |
+| `figma_comment_*` | 6 | Comments and comment reactions |
+| `figma_user_*` | 1 | The authenticated user |
+| `figma_component_*` / `figma_component_set_*` / `figma_style_*` | 9 | Published library content |
+| `figma_webhook_*` | 6 | Webhooks v2 |
+| `figma_variable_*` | 4 | Variables (**Enterprise**) |
+| `figma_dev_resource_*` | 4 | Dev Mode resource links |
+| `figma_analytics_*` | 6 | Library Analytics (**Enterprise**) |
+| `figma_activity_log_*` / `figma_developer_log_*` / `figma_ai_usage_*` / `figma_discovery_*` | 4 | Org-admin reporting (**Enterprise**) |
+| `figma_payment_*` | 1 | Purchase validation |
+| `figma_oembed_*` | 1 | oEmbed metadata |
 
-List tools accept the shared pagination parameters wherever Figma supports paging. See
-[API coverage](/cyber-figma/reference/api-coverage/#pagination) for why that needs
+Nothing here is MCP-only or CLI-only: each tool calls the same core operation as the
+matching [CLI command](/cyber-figma/cli/commands/).
+
+List tools accept the shared pagination parameters — `cursor` or `before` / `after`,
+`page_size`, `fetch_all`, and `max_pages` — wherever Figma supports paging, and only there.
+See [API coverage](/cyber-figma/reference/api-coverage/#pagination) for why that needs
 normalizing at all.
 
 ## This is not Figma's MCP server
