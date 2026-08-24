@@ -5,14 +5,6 @@ sidebar:
   order: 1
 ---
 
-:::caution[Placeholder — no commands exist yet]
-The per-command reference pages are **not written**, because the commands have not been
-built. What follows is the CLI's agreed shape: the grammar, the global options, and the
-conventions every command will follow. Each resource domain gets its own page under this
-section as it lands, and
-[API coverage](/cyber-figma/reference/api-coverage/) is the live status board.
-:::
-
 The `cyber-figma` CLI exposes the same operations as the
 [MCP server](/cyber-figma/mcp/), without needing an agent host. Every command follows one
 shape:
@@ -21,37 +13,43 @@ shape:
 cyber-figma <resource> <action> [options]
 ```
 
-## Planned command reference
+Run with no arguments, it prints its configuration — whether a credential is set, which auth
+mode is active, which team id it resolved — along with the resource list and the next steps
+to take. That is the fastest way for an agent to find out what it can do here.
 
-One page per resource domain will appear here. Until then, this is the intended namespace
-map, derived from the
-[Figma endpoint groups](/cyber-figma/reference/api-coverage/#coverage-by-endpoint-group):
+## Resources
 
-| Resource | Covers | Status |
-| --- | --- | --- |
-| `file` | File JSON, node JSON, image rendering, image fills, metadata, version history | 📋 Planned |
-| `project` | Team projects, project metadata, project files | 📋 Planned |
-| `comment` | Comments and comment reactions | 📋 Planned |
-| `user` | The authenticated user | 📋 Planned |
-| `component` / `component-set` / `style` | Published library content, team- and file-scoped and by key | 📋 Planned |
-| `webhook` | Webhooks v2 — CRUD plus delivery inspection | 📋 Planned |
-| `variable` | Local and published variables, bulk writes (**Enterprise**) | 📋 Planned |
-| `dev-resource` | Dev Mode resource links | 📋 Planned |
-| `analytics` | Library Analytics (**Enterprise**) | 📋 Planned |
-| `activity-log` / `developer-log` / `ai-usage` / `discovery` | Org-admin reporting surfaces (**Enterprise**) | 📋 Planned |
-| `payment` | Purchase validation for plugins, widgets, and Community files | 📋 Planned |
-| `oembed` | oEmbed metadata for a file or published Make site | 📋 Planned |
+Fifteen resource domains, covering
+[every endpoint group](/cyber-figma/reference/api-coverage/) Figma documents except SCIM and
+the OAuth token endpoints. Full arguments and options are in the
+[command reference](/cyber-figma/cli/commands/).
 
-Namespaces are the intended shape and are not final until each domain is implemented.
+| Resource | Covers |
+| --- | --- |
+| `file` | File JSON, node JSON, image rendering, image fills, metadata, version history |
+| `project` | Team projects, project metadata, project files |
+| `comment` | Comments and comment reactions |
+| `user` | The authenticated user |
+| `component` / `component-set` / `style` | Published library content, team- and file-scoped and by key |
+| `webhook` | Webhooks v2 — CRUD plus delivery inspection |
+| `variable` | Local and published variables, bulk writes (**Enterprise**) |
+| `dev-resource` | Dev Mode resource links |
+| `analytics` | Library Analytics (**Enterprise**) |
+| `activity-log` / `developer-log` / `ai-usage` / `discovery` | Org-admin reporting surfaces (**Enterprise**) |
+| `payment` | Purchase validation for plugins, widgets, and Community files |
+| `oembed` | oEmbed metadata for a file or published Make site |
+
+`cyber-figma mcp` runs the [MCP server](/cyber-figma/mcp/) over stdio from the same binary.
 
 ## Global options
 
-These are planned to work on every command:
+These work on every command:
 
 | Option | Description |
 | --- | --- |
 | `--token <token>` | Figma access token — overrides `FIGMA_ACCESS_TOKEN` |
-| `--team <id>` | Team ID — overrides `FIGMA_TEAM_ID` |
+| `--team <id>` | Team id or team URL — overrides `FIGMA_TEAM_ID` |
+| `--auth-mode <mode>` | How to send the token: `personal` (default), `plan`, or `oauth` |
 | `--json` | Raw API JSON instead of formatted text |
 | `--toon` | Token-efficient TOON instead of formatted text — recommended for agents |
 | `--full` | Show full field values instead of truncating large text |
@@ -61,23 +59,33 @@ Output is human-readable by default. `--toon` emits
 drops repeated keys for roughly 40% fewer tokens than pretty JSON.
 
 See [Authentication](/cyber-figma/authentication/) for how `--token` relates to
-`FIGMA_ACCESS_TOKEN`, and why `FIGMA_TEAM_ID` has to exist at all.
+`FIGMA_ACCESS_TOKEN`, what each auth mode can and cannot reach, and why `FIGMA_TEAM_ID` has
+to exist at all.
 
 ## Figma URLs are accepted where keys are
 
 File keys and node IDs come out of Figma URLs
 (`https://www.figma.com/design/{file_key}/{title}?node-id={node_id}`), so a pasted URL is
-accepted anywhere a key is.
+accepted anywhere a key is. The same holds for team and project URLs.
 
 ## Pagination
 
-Figma paginates inconsistently — [four different models](/cyber-figma/reference/api-coverage/#pagination),
+Figma paginates inconsistently — [six different models](/cyber-figma/reference/api-coverage/#pagination),
 plus a large set of endpoints that do not paginate at all. The CLI normalizes that: every
-list command takes the same options and returns the same shape, whatever the endpoint
-underneath does.
+list command that can page takes the same options and returns the same shape, whatever the
+endpoint underneath does.
 
-Endpoints with no pagination of their own do not gain any; they report their result as a
-single complete page, which is the honest answer.
+| Option | Description |
+| --- | --- |
+| `--cursor <cursor>` or `--before <id>` / `--after <id>` | Where to resume, in whichever form that endpoint uses |
+| `--page-size <number>` | Results per page, where the endpoint accepts one |
+| `--all` | Fetch every page, up to `--max-pages` |
+| `--max-pages <number>` | Ceiling on `--all` (default: 10) |
+
+A command only advertises the flags its endpoint really has: the options are derived from the
+endpoint's pagination model rather than declared by hand, so there is no `--cursor` on a
+command that has nowhere to send one. Endpoints with no pagination of their own do not gain
+any; they report their result as a single complete page, which is the honest answer.
 
 ## Output conventions
 
@@ -89,25 +97,33 @@ Every command follows the
 - **Truncation with `--full`** — Figma document trees are deep, so node payloads and other
   large free-text fields are truncated with a size hint by default.
 - **Minimal default schemas** — list and get commands request the smallest useful field and
-  depth set when you give none. On a Tier 1 endpoint like `GET file`, a default that
-  fetches the whole tree is a bug.
+  depth set when you give none. `file get` with no `--ids` or `--depth` returns pages only.
 - **Aggregates and next steps** — list commands print a count summary and follow-up
   suggestions in text mode, suppressed under `--json` and `--toon`.
 - **Non-interactive mutations** — no prompts, so everything is safe to script.
-- **Idempotent deletes** — deleting something already gone succeeds rather than failing
-  with a `404`.
+- **Idempotent deletes** — deleting something already gone succeeds and reports
+  `already_absent` rather than failing with a `404`.
 
 ## Errors and exit codes
 
-Errors are structured objects under `--json` and `--toon`. `0` means success and `2` means
-a usage error — an unknown flag or subcommand, reported along with the flags that command
-actually accepts and a `--help` pointer. The remaining codes are documented here as the
-first domain lands.
+Errors are structured objects under `--json` and `--toon`. Agents can branch on the exit
+code:
 
-Two Figma-specific error behaviors the CLI has to translate rather than relay:
+| Code | Meaning |
+| --- | --- |
+| `0` | Success |
+| `1` | Error |
+| `2` | Usage error — unknown flag or subcommand, reported with the flags that command accepts |
+| `3` | Auth or configuration problem — no credential, or no team id to resolve |
+| `4` | Forbidden — the credential is valid but lacks permission |
+| `5` | Not found |
+| `6` | Rate limited |
+| `7` | Above the plan level — the endpoint needs a higher plan, seat, or role |
+
+Two Figma-specific error behaviors the CLI translates rather than relays:
 
 - **An expired token answers `403`, not `401`** — so "generate a new token" and "you lack
-  permission on this resource" must be told apart.
+  permission on this resource" have to be told apart, and the message says which one it is.
 - **A `429` carries the diagnosis** in `X-Figma-Plan-Tier`, `X-Figma-Rate-Limit-Type`, and
   `X-Figma-Upgrade-Link`. See
   [Plans and limits](/cyber-figma/reference/plans-and-limits/#diagnosing-a-surprising-429).
