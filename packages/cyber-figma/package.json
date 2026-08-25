@@ -1,6 +1,6 @@
 {
 	"name": "cyber-figma",
-	"version": "0.0.0",
+	"version": "0.1.0",
 	"description": "Figma CLI and MCP server for AI agents",
 	"repository": {
 		"type": "git",
