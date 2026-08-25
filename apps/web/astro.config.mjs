@@ -18,7 +18,6 @@ export default defineConfig({
 				{
 					label: 'Getting Started',
 					items: [
-						{ label: 'Introduction', link: '/' },
 						{ label: 'Installation', link: '/installation/' },
 						{ label: 'Authentication', link: '/authentication/' },
 					],
