@@ -21,23 +21,23 @@ to take. That is the fastest way for an agent to find out what it can do here.
 
 Fifteen resource domains, covering
 [every endpoint group](/cyber-figma/reference/api-coverage/) Figma documents except SCIM and
-the OAuth token endpoints. Full arguments and options are in the
-[command reference](/cyber-figma/cli/commands/).
+the OAuth token endpoints. Each has its own page with every argument and option; `cyber-figma
+<resource> --help` prints the same reference in the terminal.
 
 | Resource | Covers |
 | --- | --- |
-| `file` | File JSON, node JSON, image rendering, image fills, metadata, version history |
-| `project` | Team projects, project metadata, project files |
-| `comment` | Comments and comment reactions |
-| `user` | The authenticated user |
-| `component` / `component-set` / `style` | Published library content, team- and file-scoped and by key |
-| `webhook` | Webhooks v2 — CRUD plus delivery inspection |
-| `variable` | Local and published variables, bulk writes (**Enterprise**) |
-| `dev-resource` | Dev Mode resource links |
-| `analytics` | Library Analytics (**Enterprise**) |
-| `activity-log` / `developer-log` / `ai-usage` / `discovery` | Org-admin reporting surfaces (**Enterprise**) |
-| `payment` | Purchase validation for plugins, widgets, and Community files |
-| `oembed` | oEmbed metadata for a file or published Make site |
+| [`file`](/cyber-figma/cli/files/) | File JSON, node JSON, image rendering, image fills, metadata, version history |
+| [`project`](/cyber-figma/cli/projects/) | Team projects, project metadata, project files |
+| [`comment`](/cyber-figma/cli/comments/) | Comments and comment reactions |
+| [`user`](/cyber-figma/cli/users/) | The authenticated user |
+| [`component` / `component-set` / `style`](/cyber-figma/cli/library/) | Published library content, team- and file-scoped and by key |
+| [`webhook`](/cyber-figma/cli/webhooks/) | Webhooks v2 — CRUD plus delivery inspection |
+| [`variable`](/cyber-figma/cli/variables/) | Local and published variables, bulk writes (**Enterprise**) |
+| [`dev-resource`](/cyber-figma/cli/dev-resources/) | Dev Mode resource links |
+| [`analytics`](/cyber-figma/cli/analytics/) | Library Analytics (**Enterprise**) |
+| [`activity-log`](/cyber-figma/cli/activity-logs/) / [`developer-log`](/cyber-figma/cli/developer-logs/) / [`ai-usage`](/cyber-figma/cli/ai-usage/) / [`discovery`](/cyber-figma/cli/discovery/) | Org-admin reporting surfaces (**Enterprise**) |
+| [`payment`](/cyber-figma/cli/payments/) | Purchase validation for plugins, widgets, and Community files |
+| [`oembed`](/cyber-figma/cli/oembed/) | oEmbed metadata for a file or published Make site |
 
 `cyber-figma mcp` runs the [MCP server](/cyber-figma/mcp/) over stdio from the same binary.
 
