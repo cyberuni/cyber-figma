@@ -11,13 +11,19 @@ When the user is setting up `cyber-figma` for the first time, or when commands f
 
 ## Ensure cyber-figma CLI
 
-Before running any `cyber-figma` command:
+Before running any `cyber-figma` command, settle how to invoke it — once, in this order. Whichever form resolves is what every `cyber-figma <subcommand>` in this skill and all other cyber-figma skills means.
 
-1. **Resolve pinned version** — latest published semver: `npm view cyber-figma version`. Use this value as `<exact>` for every `npx cyber-figma@<exact>` in this skill and all other cyber-figma skills (never `@latest`, never a literal placeholder).
-2. **Check availability**: `npx cyber-figma@<exact> --version` (or `cyber-figma --version` if globally installed).
-3. If that succeeds, proceed normally.
+1. **Shipped CLI (preferred).** When these skills came from an installed `cyber-figma` plugin or npm package, the CLI ships beside them and is bundled with its dependencies inlined, so it needs no install and no network:
 
-If it fails (npx install prompt, `command not found`, or other non-zero exit):
+   ```bash
+   node <cyber-figma-root>/skills/init-figma/scripts/cyber-figma.mjs --version
+   ```
+
+   `<cyber-figma-root>` is the package root, four levels up from that script; from another cyber-figma skill's own directory the same launcher is `../init-figma/scripts/cyber-figma.mjs`. If it prints a version, use it for every later command and skip the rest of this section.
+2. **Global install** — `cyber-figma --version`. If that succeeds, use the bare `cyber-figma` spelling.
+3. **npx fallback** — resolve the latest published semver with `npm view cyber-figma version` and use it as `<exact>` for every `npx cyber-figma@<exact>` (never `@latest`, never a literal placeholder). Check with `npx cyber-figma@<exact> --version`.
+
+If only the npx path is left and it fails (install prompt, `command not found`, or other non-zero exit):
 
 1. Tell the user the workflow needs to download `cyber-figma` from npm (no `package.json` change).
 2. **Ask** whether to install.
