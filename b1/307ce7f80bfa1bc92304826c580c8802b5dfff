@@ -1,0 +1,27 @@
+.claude-plugin/marketplace.json
+  s_b702b9709a8330::t_ab5525fc732415 3-6,17-19,21,24-25
+packages/cyber-figma/.claude-plugin/plugin.json
+  s_b702b9709a8330::t_ab5525fc732415 5-7,9,11-13
+packages/cyber-figma/.codex-plugin/plugin.json
+  s_b702b9709a8330::t_ab5525fc732415 5-7,16-17
+packages/cyber-figma/.cursor-plugin/plugin.json
+  s_b702b9709a8330::t_ab5525fc732415 5-7,14-15
+packages/cyber-figma/plugin.json
+  s_b702b9709a8330::t_ab5525fc732415 6-8,12-35
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.24",
+  "base_commit_sha": "b1307ce7f80bfa1bc92304826c580c8802b5dfff",
+  "prompts": {},
+  "sessions": {
+    "s_b702b9709a8330": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "caa01ae6-b91e-4ee9-9baf-2a73a806d156",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "unional <homawong@gmail.com>"
+    }
+  }
+}
