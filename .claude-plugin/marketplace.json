@@ -1,6 +1,9 @@
 {
 	"name": "cyberuni",
-	"owner": { "name": "unional", "url": "https://github.com/cyberuni" },
+	"owner": {
+		"name": "unional",
+		"url": "https://github.com/cyberuni"
+	},
 	"description": "Agent plugins from cyberuni",
 	"plugins": [
 		{
@@ -11,12 +14,15 @@
 				"source": "npm",
 				"package": "cyber-figma"
 			},
-			"author": { "name": "unional" },
+			"author": {
+				"name": "unional"
+			},
 			"homepage": "https://github.com/cyberuni/cyber-figma",
-			"repository": "https://github.com/cyberuni/cyber-figma",
+			"repository": "https://github.com/cyberuni/cyber-figma.git",
 			"license": "MIT",
 			"category": "design",
-			"keywords": ["figma", "mcp", "cli", "agent", "design"]
+			"keywords": ["figma", "mcp", "cli", "agent", "design"],
+			"version": "0.1.1"
 		}
 	]
 }

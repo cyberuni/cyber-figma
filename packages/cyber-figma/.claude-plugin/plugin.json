@@ -1,12 +1,14 @@
 {
-	"$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json",
 	"name": "cyber-figma",
-	"displayName": "Cyber Figma",
 	"version": "0.1.1",
 	"description": "Figma CLI and MCP server for AI agents",
-	"author": { "name": "unional" },
+	"author": {
+		"name": "unional"
+	},
 	"homepage": "https://github.com/cyberuni/cyber-figma",
-	"repository": "https://github.com/cyberuni/cyber-figma",
+	"repository": "https://github.com/cyberuni/cyber-figma.git",
 	"license": "MIT",
-	"keywords": ["figma", "mcp", "cli", "agent", "design"]
+	"keywords": ["figma", "mcp", "cli", "agent", "design"],
+	"skills": "./skills/",
+	"displayName": "Cyber Figma"
 }
