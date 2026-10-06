@@ -138,6 +138,28 @@ describe('comment list options', () => {
 		// the reply names the comment it answers, which the flat list does not
 		expect(out).toMatch(/^2\s+ada\s+open\s+1\s/m)
 	})
+
+	it('keeps a long multi-line message to one short row', async () => {
+		const message = `@Cindy have we deprecated Beta?\ncc @Kelsey ${'x'.repeat(600)}`
+		const { api } = fakeApi({ list: () => Promise.resolve(page([comment({ message })])) })
+
+		const out = await run(['list', 'abc123'], api)
+		const row = out.split('\n').find((line) => line.startsWith('1 '))
+
+		expect(row).toMatch(/@Cindy have we deprecated Beta\? cc @Kelsey x+…$/)
+		expect(row?.length).toBeLessThan(150)
+		expect(out).toContain('use --full')
+	})
+
+	it('prints the whole message with --full', async () => {
+		const message = 'y'.repeat(600)
+		const { api } = fakeApi({ list: () => Promise.resolve(page([comment({ message })])) })
+
+		const out = await run(['list', 'abc123'], api, ['--full'])
+
+		expect(out).toContain(message)
+		expect(out).not.toContain('truncated')
+	})
 })
 
 describe('comment create', () => {

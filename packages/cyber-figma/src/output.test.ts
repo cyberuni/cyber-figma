@@ -58,6 +58,40 @@ describe('printTable', () => {
 		printTable([], [{ label: 'Name', get: () => '' }])
 		expect(spy).toHaveBeenCalledWith('0 results')
 	})
+
+	it('keeps a multi-line value on its own row', () => {
+		const spy = vi.spyOn(console, 'log').mockImplementation(() => {})
+		printTable([{ m: 'first line\ncc @someone\r\n  third' }], [{ label: 'message', get: (r) => r.m }])
+		const rows = spy.mock.calls.map(([line]) => String(line))
+		expect(rows).toEqual(['MESSAGE'.padEnd(28), '-'.repeat(28), 'first line cc @someone third'])
+	})
+
+	it('caps a column at its max width so one long value cannot stretch the table', () => {
+		const spy = vi.spyOn(console, 'log').mockImplementation(() => {})
+		printTable(
+			[{ id: '1', m: 'x'.repeat(600) }],
+			[
+				{ label: 'id', get: (r) => r.id },
+				{ label: 'message', get: (r) => r.m, max: 10 },
+			],
+		)
+		const rows = spy.mock.calls.map(([line]) => String(line))
+		expect(rows[2]).toBe(`1   ${'x'.repeat(9)}…`)
+		expect(rows.at(-1)).toBe('\nLong values are cut to fit the table; use --full to see them whole.')
+	})
+
+	it('prints capped values whole with full', () => {
+		const spy = vi.spyOn(console, 'log').mockImplementation(() => {})
+		printTable([{ m: 'x'.repeat(20) }], [{ label: 'message', get: (r) => r.m, max: 10 }], { full: true })
+		const rows = spy.mock.calls.map(([line]) => String(line))
+		expect(rows).toEqual(['MESSAGE'.padEnd(20), '-'.repeat(20), 'x'.repeat(20)])
+	})
+
+	it('says nothing about truncation when every value fits', () => {
+		const spy = vi.spyOn(console, 'log').mockImplementation(() => {})
+		printTable([{ m: 'short' }], [{ label: 'message', get: (r) => r.m, max: 10 }])
+		expect(spy).toHaveBeenCalledTimes(3)
+	})
 })
 
 describe('printNextSteps', () => {

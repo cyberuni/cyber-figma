@@ -60,7 +60,7 @@ export function commentCommand(getApi: () => CommentApi): Command {
 						// Figma returns roots and replies in one flat list; without this
 						// column a thread reads as unrelated comments.
 						{ label: 'reply to', get: (c) => c.parent_id ?? '' },
-						{ label: 'message', get: (c) => truncate(c.message, { full: isFull() }) },
+						{ label: 'message', get: (c) => c.message, max: 80 },
 					],
 					{ entity: 'comments' },
 				)

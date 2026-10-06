@@ -1,4 +1,5 @@
 import { encodeToon } from './toon.js'
+import { isFull } from './truncate.js'
 
 export type OutputFormat = 'json' | 'toon' | 'text'
 
@@ -25,21 +26,39 @@ export function printFields(fields: Record<string, string | null | undefined>) {
 	}
 }
 
-export function printTable<T>(
-	items: T[],
-	cols: { label: string; get: (item: T) => string }[],
-	opts?: { entity?: string },
-) {
+/**
+ * A table column. `max` caps a free-text column so one long value cannot
+ * stretch every row; leave it off for ids and URLs, which are useless cut.
+ */
+export interface TableColumn<T> {
+	label: string
+	get: (item: T) => string
+	max?: number
+}
+
+export function printTable<T>(items: T[], cols: TableColumn<T>[], opts?: { entity?: string; full?: boolean }) {
 	if (items.length === 0) {
 		printEmpty(opts?.entity)
 		return
 	}
-	const widths = cols.map((c) => Math.max(c.label.length, ...items.map((i) => c.get(i).length)))
+	const full = opts?.full ?? isFull()
+	let cut = false
+	// A line break inside a cell would start a new row, so every cell is one line.
+	const rows = items.map((item) =>
+		cols.map((c) => {
+			const value = c.get(item).replace(/\s*[\r\n]+\s*/g, ' ')
+			if (full || c.max === undefined || value.length <= c.max) return value
+			cut = true
+			return `${value.slice(0, c.max - 1)}…`
+		}),
+	)
+	const widths = cols.map((c, i) => Math.max(c.label.length, ...rows.map((r) => r[i].length)))
 	console.log(cols.map((c, i) => c.label.toUpperCase().padEnd(widths[i])).join('  '))
 	console.log(widths.map((w) => '-'.repeat(w)).join('  '))
-	for (const item of items) {
-		console.log(cols.map((c, i) => c.get(item).padEnd(widths[i])).join('  '))
+	for (const row of rows) {
+		console.log(row.map((cell, i) => cell.padEnd(widths[i])).join('  '))
 	}
+	if (cut) console.log('\nLong values are cut to fit the table; use --full to see them whole.')
 }
 
 /** Aggregate summary line — principle 4. Text mode only. */
