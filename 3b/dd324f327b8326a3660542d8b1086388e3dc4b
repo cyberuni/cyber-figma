@@ -1,0 +1,28 @@
+packages/cyber-figma/src/comments/cli.test.ts
+  s_09d33b84564c04::t_771c3292f874ec 141-162
+packages/cyber-figma/src/output.test.ts
+  s_09d33b84564c04::t_00d1cdbd11e0ea 71-77
+  s_09d33b84564c04::t_ba445922198831 61-65,67-70,78-94
+  s_09d33b84564c04::t_8eeba8d7080668 66
+packages/cyber-figma/src/output.ts
+  s_09d33b84564c04::t_ce600d3ea944d3 2
+  s_09d33b84564c04::t_a315130493c1ee 29-39,44-55,58-59,61
+packages/cyber-figma/src/comments/cli.ts
+  s_09d33b84564c04::t_04960085eef431 63
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.24",
+  "base_commit_sha": "3bdd324f327b8326a3660542d8b1086388e3dc4b",
+  "prompts": {},
+  "sessions": {
+    "s_09d33b84564c04": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "62c59de0-05c0-4ff9-8e8a-d0a222b33cfe",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "unional <homawong@gmail.com>"
+    }
+  }
+}
