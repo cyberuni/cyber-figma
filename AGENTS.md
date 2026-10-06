@@ -54,7 +54,6 @@ Everything the plugin needs lives in `packages/cyber-figma/` and must stay liste
 | `.claude-plugin/plugin.json` / `.mcp.json` | Claude Code |
 | `.cursor-plugin/plugin.json` | Cursor |
 | `.codex-plugin/plugin.json` | Codex |
-| `.plugin/plugin.json` | Canonical universal-plugin source; not published |
 | `skills/<name>/SKILL.md` | All of them (fixed location) |
 
 `.claude-plugin/marketplace.json` at the **repo root** lists the plugin with an `npm` source. Version bumps flow from `packages/cyber-figma/package.json` through `scripts/sync-plugin-version.mjs` on `pnpm version` — add any new versioned manifest to that script's list. `mcp.json` and `.mcp.json` are not in it because they carry no `version` field.
