@@ -1,5 +1,11 @@
 # cyber-figma
 
+## 0.1.2
+
+### Patch Changes
+
+- 74bdbe6: Include `CHANGELOG.md` in the published package.
+
 ## 0.1.1
 
 ### Patch Changes
