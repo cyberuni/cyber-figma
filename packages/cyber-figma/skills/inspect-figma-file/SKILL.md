@@ -116,7 +116,7 @@ Summarize structure in the user's terms — pages, then frames, then the specifi
 | --- | --- |
 | `403` on a call that worked before | The token expired — Figma reports expiry as `403`, not `401`. Generate a new one (**init-figma**). |
 | `403` on one file only | No access to that file, or the token lacks `file_content:read` / `file_metadata:read`. |
-| `429` with a multi-day `Retry-After` | Almost always a View/Collab seat on a tier-1 endpoint (~6 per month), or the file lives in a Starter-plan space. Check `X-Figma-Rate-Limit-Type` (`low` = View/Collab) and `X-Figma-Plan-Tier`, and surface `X-Figma-Upgrade-Link`. |
+| `429` with a multi-day `Retry-After` | Almost always a View/Collab seat on a tier-1 endpoint (a handful per month), or the file lives in a Starter-plan space. Check `X-Figma-Rate-Limit-Type` (`low` = View/Collab) and `X-Figma-Plan-Tier`, and surface `X-Figma-Upgrade-Link`. |
 | `400`/`500` on a whole-file fetch | The file is too large to serialize in time. Re-request with `--depth` or `--ids`. |
 | Exit `7` (plan-gated) | The endpoint needs Enterprise. Variables are Enterprise-only **for reads as well as writes**; so are library analytics, activity logs, developer logs, AI usage, and discovery. There is no workaround on a lower plan. |
 

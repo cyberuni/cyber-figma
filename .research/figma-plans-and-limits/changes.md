@@ -1,5 +1,12 @@
 # Figma Plans and Limits Changes
 
+## 2026-11-04
+
+- Changed: Recorded that the two official quota tables now disagree on the Tier 1 View/Collab figure (20/month in the developer docs; 6/month on paid plans and 20/month on Starter in the help center) [E14]. Re-confirmed the URL expiry, 32-megapixel, and 90-day PAT figures.
+- Why: A prompt audit (cyberuni/cyber-figma#58) asked for verification dates on the limits the skills state; re-checking found the rate-limits page had changed.
+- Material conclusion change: no — View/Collab seats are still capped at a few tier-1 calls a month on every plan, so the risk stands. Only the exact number is in doubt.
+- Trigger: The "rate-limits page changes" recheck trigger.
+
 ## 2026-08-11
 
 - Changed: Initial research recorded. Established the plan/seat/auth/scope gating model, the rate-limit quota table and tier membership, the six Enterprise-gated domains, token lifecycle per auth mode, and the recommendation to default to personal access tokens (E01–E13).

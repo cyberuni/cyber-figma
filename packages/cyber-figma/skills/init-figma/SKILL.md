@@ -82,7 +82,7 @@ Or pass per-command with `--token <pat>`.
 
 Two facts to tell the user up front, because both look like bugs later:
 
-- **A personal access token expires after at most 90 days**, and there is no automatic rotation. The old "no expiration" option was removed. Plan on rotating.
+- **A personal access token expires after at most 90 days**, and there is no automatic rotation (checked 2026-11-04 against Figma's [plan access tokens](https://developers.figma.com/docs/rest-api/plan-access-tokens/) comparison table). The old "no expiration" option was removed. Plan on rotating.
 - **Figma reports an expired token as `403`, not `401`.** If commands that used to work start failing with a permission error, suspect expiry first.
 
 #### Scopes to pick
@@ -151,7 +151,7 @@ The file key is the segment after `/design/` (or the older `/file/`) in any Figm
 
 Three gates cause almost all confusing failures. Explain whichever applies:
 
-- **Seat type, not plan, sets the rate limit.** A View or Collab seat gets roughly **6 `GET file` / `GET file nodes` / `GET image` calls per month** — on *every* plan, including Enterprise. If the user's core flow is "read a file", a Dev or Full seat is required for it to be usable at all.
+- **Seat type, not plan, sets the rate limit.** A View or Collab seat gets only a handful of **`GET file` / `GET file nodes` / `GET image` calls per month** — on *every* plan, including Enterprise. On 2026-11-04 Figma's two official tables disagreed on the number (6 or 20 a month); check [rate limits](https://developers.figma.com/docs/rest-api/rate-limits/) for the current figure. If the user's core flow is "read a file", a Dev or Full seat is required for it to be usable at all.
 - **The limit follows the plan the file lives in**, not the best plan the user belongs to. A file sitting in the user's personal (Starter) space gets Starter treatment even for an Enterprise Full-seat user. If a `429` looks wildly out of proportion, check where the file actually lives.
 - **Six endpoint families are Enterprise-only**: Variables (read *and* write), Library Analytics, Activity Logs, Developer Logs, AI Usage, and Discovery. Activity Logs, Developer Logs, AI Usage, and Discovery additionally require an **org admin**, and Developer Logs and Discovery additionally require the **Governance+** add-on. None of these work with an ordinary PAT on a Starter, Professional, or Organization plan, and Activity Logs, Developer Logs, AI Usage, and Discovery are not reachable with a PAT at all.
 
