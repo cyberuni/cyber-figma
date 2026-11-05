@@ -237,3 +237,22 @@ Notes:
 - Team-context webhooks fire for files available to everyone on the team or in view-only projects, and **do not fire for files in invite-only projects** — a silent-delivery-gap that will read as a bug.
 - `plan_api_id` must be constructed as `team-<id>` (Professional) or `organization-<id>` (Organization/Enterprise/Government), read out of a Figma URL.
 - Delivery: Figma retries failures 3 times with backoff at 5 minutes, 30 minutes, and 3 hours, and does **not** auto-deactivate persistently failing endpoints.
+
+## Claim E14
+
+Date: 2026-11-04
+Status: contradicts
+Confidence: medium
+
+Source:
+- Label: Figma REST API rate limits documentation and the help-center "What if I'm rate-limited?" page — both quota tables, re-parsed from raw HTML
+- URL: https://developers.figma.com/docs/rest-api/rate-limits/
+- URL: https://help.figma.com/hc/en-us/articles/34963238552855-What-if-I-m-rate-limited
+- Type: official documentation (primary and secondary surface), structural parse
+
+Notes:
+- The two pages no longer agree on Tier 1. The developer docs give **"Up to 20/month"** for View/Collab on every plan, and the Starter cell (`rowspan="2"`) spans Dev/Full too. The help center gives **"Up to 20/month"** in the Starter cell but **"Up to 6/month"** for View/Collab on Professional, Organization, and Enterprise.
+- Both pages still say the limits took effect 2025-11-17, so the change carries no new effective date.
+- Unchanged on both pages: Dev/Full Tier 1 (10 / 15 / 20 per min), all of Tier 2 and Tier 3, and the "might only be able to make 2 requests in a month" caveat.
+- Re-checked the same day and unchanged since 2026-08-11: a PAT's maximum expiry is 90 days (plan access tokens page, [E07, E09]), and on the file endpoints page rendered image URLs expire after 30 days, image fill URLs after no more than 14 days, and renders go up to 32 megapixels.
+- Supersedes the E02/E03 agreement on the Tier 1 View/Collab figure. Which page is current is unknown; treat the monthly figure as "a handful" until Figma reconciles them or a live 429 shows the real budget.

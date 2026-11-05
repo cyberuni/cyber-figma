@@ -149,6 +149,8 @@ Rates are per minute unless stated. In the Starter column the value spans both s
 | **Tier 3** | View, Collab | Up to 10/min | Up to 10/min | Up to 10/min | Up to 10/min |
 | | Dev, Full | *(up to 10/min)* | **50/min** | **100/min** | **150/min** |
 
+⚠️ **Re-checked 2026-11-04: the two official tables now disagree on Tier 1 View/Collab.** The [developer docs](https://developers.figma.com/docs/rest-api/rate-limits/) give *Up to 20/month* on every plan, Starter Dev/Full included. The [help center](https://help.figma.com/hc/en-us/articles/34963238552855-What-if-I-m-rate-limited) gives *Up to 20/month* on Starter and *Up to 6/month* on Professional, Organization, and Enterprise. The table above is the 2026-08-11 reading. Every other cell still matches both pages. See [E14](../../.research/figma-plans-and-limits/evidence.md).
+
 For View and Collab seats the figures are ceilings, not guarantees: *"Depending on traffic and demand, the actual limit may be lower. For example, a user with a View seat who tries to query a Tier 1 endpoint might only be able to make 2 requests in a month."*
 
 ### Which endpoints are in which tier
@@ -161,7 +163,7 @@ For View and Collab seats the figures are ceilings, not guarantees: *"Depending 
 
 Two non-obvious placements: **`POST variables` (a write) is Tier 3**, cheaper than reading variables; and **`GET file metadata` is Tier 3** while `GET file` is Tier 1 — so metadata-first listing flows are ~15× cheaper than fetching documents.
 
-**The Tier 1 / View-seat cliff is the headline risk:** a Viewer or Collab seat gets **6 `GET file` calls per month**, on every plan including Enterprise. Any tool whose primary flow is "read a file" is unusable for those seats. `cyber-figma` should detect this from the `429` headers and say so explicitly rather than appearing broken.
+**The Tier 1 / View-seat cliff is the headline risk:** a Viewer or Collab seat gets only a few **`GET file` calls per month** (6 or 20, see the warning above), on every plan including Enterprise. Any tool whose primary flow is "read a file" is unusable for those seats. `cyber-figma` should detect this from the `429` headers and say so explicitly rather than appearing broken.
 
 ### How limits are counted per auth mode
 
