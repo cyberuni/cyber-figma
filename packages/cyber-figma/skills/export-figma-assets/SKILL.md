@@ -45,7 +45,7 @@ cyber-figma image export <file-key> \
   --toon
 ```
 
-**Batching is not an optimization, it is the documented way to avoid rate limits.** Rendering is rate-limit tier 1 — the most expensive tier, roughly 6 calls per *month* on a View or Collab seat. One call listing 50 node ids costs one request; 50 calls cost 50.
+**Batching is not an optimization, it is the documented way to avoid rate limits.** Rendering is rate-limit tier 1 — the most expensive tier, only a handful of calls per *month* on a View or Collab seat (6 or 20, depending on which Figma page you read on 2026-11-04; see [rate limits](https://developers.figma.com/docs/rest-api/rate-limits/)). One call listing 50 node ids costs one request; 50 calls cost 50.
 
 Options that matter:
 
@@ -59,7 +59,7 @@ Options that matter:
 | `--svg-include-id` / `--svg-include-node-id` | flag | Emit layer name / node id as attributes, for scripts that post-process the SVG |
 | `--version` | version id | Export a historical version rather than current |
 
-Images above **32 megapixels** are scaled down rather than rejected.
+Images above **32 megapixels** are scaled down rather than rejected (checked 2026-11-04 against Figma's [file endpoints](https://developers.figma.com/docs/rest-api/file-endpoints/) reference).
 
 ### 3. Read the response carefully — `null` is not an error
 
@@ -75,6 +75,8 @@ The returned URLs are temporary:
 
 - **Rendered image URLs expire after 30 days.**
 - **Image fill URLs expire after no more than 14 days** — shorter.
+
+Both figures were checked on 2026-11-04 against Figma's [file endpoints](https://developers.figma.com/docs/rest-api/file-endpoints/) reference.
 
 So never hand a user a bare URL as the deliverable, and never store one in a repo, a doc, or a task. Download to disk immediately:
 
@@ -103,7 +105,7 @@ Tell the user: what was exported, where the files are, which nodes returned `nul
 | Some ids come back `null` | Those nodes have nothing renderable, or the id is wrong. Not a retryable error. |
 | `400` with an `err` string | A parameter is invalid — `err` names which one. Common culprits: `scale` outside 0.01–4, a malformed node id. |
 | `403` | The token expired (Figma reports expiry as `403`, not `401`), or it lacks `file_content:read`, or there is no access to the file. |
-| `429` with a long `Retry-After` | Rendering is tier 1. On a View/Collab seat that is ~6 calls per month on any plan. Check `X-Figma-Rate-Limit-Type` (`low` = View/Collab seat) and `X-Figma-Plan-Tier`; surface `X-Figma-Upgrade-Link`. If the file lives in a personal/Starter space, moving it into the paid team restores the higher limit. |
+| `429` with a long `Retry-After` | Rendering is tier 1. On a View/Collab seat that is a handful of calls per month on any plan. Check `X-Figma-Rate-Limit-Type` (`low` = View/Collab seat) and `X-Figma-Plan-Tier`; surface `X-Figma-Upgrade-Link`. If the file lives in a personal/Starter space, moving it into the paid team restores the higher limit. |
 | A previously working URL now 403s | It expired — re-run the export. Rendered URLs last 30 days, fill URLs at most 14. |
 
 ## References
