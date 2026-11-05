@@ -1,5 +1,17 @@
 # cyber-figma
 
+## 0.2.0
+
+### Minor Changes
+
+- 34b7f0b: Update runtime dependencies.
+- 34b7f0b: Update runtime dependencies.
+
+### Patch Changes
+
+- 74bdbe6: Include `CHANGELOG.md` in the published package.
+- 6fbc5a2: Date the Figma limits the skills state, and link the Figma page each comes from. The View/Collab monthly quota now reads "a handful", because Figma's two official tables disagree on it (6 or 20 a month).
+
 ## 0.1.1
 
 ### Patch Changes
