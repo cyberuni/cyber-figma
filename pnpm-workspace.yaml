@@ -36,3 +36,6 @@ minimumReleaseAgeExclude:
   - astro@7.2.8
   # Renovate security update: @modelcontextprotocol/sdk@1.32.0
   - "@modelcontextprotocol/sdk@1.32.0"
+  # universal-plugin@0.22.0 (published 2026-11-18): plugin build/check tooling adopted.
+  # Expires 2026-11-19: remove this entry once the version is a day old.
+  - universal-plugin@0.22.0
