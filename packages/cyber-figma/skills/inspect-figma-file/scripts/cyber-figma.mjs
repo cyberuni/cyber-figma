@@ -1,5 +1,5 @@
 // Written by `universal-plugin plugin build` to forward to the cyber-figma CLI of cyber-figma. Edit plugin.json, not this file.
-globalThis.__SKILL_SCRIPT__ = {"package":"cyber-figma","bin":"cyber-figma","version":"0.2.0","entry":"skills/inspect-figma-file/scripts/cyber-figma.mjs","commands":{},"forward":"own"};
+globalThis.__SKILL_SCRIPT__ = {"package":"cyber-figma","bin":"cyber-figma","version":"0.2.1","entry":"skills/inspect-figma-file/scripts/cyber-figma.mjs","commands":{},"forward":"own"};
 import { spawnSync } from 'node:child_process'
 import * as fs from 'node:fs'
 import * as path from 'node:path'

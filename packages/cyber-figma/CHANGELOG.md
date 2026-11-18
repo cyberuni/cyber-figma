@@ -1,5 +1,15 @@
 # cyber-figma
 
+## 0.2.1
+
+### Patch Changes
+
+- 0e830fa: Update runtime dependencies.
+- 0e830fa: Update runtime dependencies.
+- 0e830fa: Update runtime dependencies.
+- 68a09be: Skills now run the CLI through a forwarder in their own folder, `node <skill>/scripts/cyber-figma.mjs <args>`. It uses the installed package at the plugin's version, so the global-install and `npx` fallback steps in `init-figma` are gone.
+- 49dcfce: Adopt universal-plugin 0.22.0 tooling: the plugin manifests are now built and checked in CI.
+
 ## 0.2.0
 
 ### Minor Changes
