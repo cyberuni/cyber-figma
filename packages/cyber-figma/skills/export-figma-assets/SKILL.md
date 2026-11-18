@@ -11,11 +11,11 @@ When the user wants images out of Figma: icons as SVG, frames as PNG for a doc o
 
 Not for reading structure — use **inspect-figma-file** for that.
 
-## Ensure cyber-figma CLI
+## Run the cyber-figma CLI
 
-See the **Ensure cyber-figma CLI** section of the **init-figma** skill. If `FIGMA_ACCESS_TOKEN` is unset, run **init-figma** first.
+Run every `cyber-figma` command through the forwarder in this skill's folder, `node <this skill's folder>/scripts/cyber-figma.mjs <args>`. If `FIGMA_ACCESS_TOKEN` is unset, run **init-figma** first.
 
-If a command below exits `2` (usage error), the spelling has moved — confirm it with `cyber-figma --help` and `cyber-figma <resource> --help` rather than guessing. The global flags (`--token`, `--team`, `--toon`, `--json`, `--full`) and the exit codes are stable.
+If a command below exits `2` (usage error), the spelling has moved — confirm it with `node <this skill's folder>/scripts/cyber-figma.mjs --help` and `node <this skill's folder>/scripts/cyber-figma.mjs <resource> --help` rather than guessing. The global flags (`--token`, `--team`, `--toon`, `--json`, `--full`) and the exit codes are stable.
 
 ## Two different things called "images"
 
@@ -39,7 +39,7 @@ If they described the thing in words ("the icon set", "the checkout screens") ra
 ### 2. Batch every node into one call
 
 ```bash
-cyber-figma image export <file-key> \
+node <this skill's folder>/scripts/cyber-figma.mjs image export <file-key> \
   --ids <node-id>,<node-id>,<node-id> \
   --format svg \
   --toon
@@ -89,7 +89,7 @@ Ask the user where the files should land and what to name them; derive names fro
 ### 5. Original image fills
 
 ```bash
-cyber-figma image fills <file-key> --toon
+node <this skill's folder>/scripts/cyber-figma.mjs image fills <file-key> --toon
 ```
 
 Returns a map of `imageRef` → download URL for every user-supplied image used as a fill. The `imageRef` keys match the `imageRef` values on `Paint` objects in the file's node data, so pair this with **inspect-figma-file** when the user needs to know which fill belongs to which layer. Tier 2 — cheaper than rendering, and unpaginated.

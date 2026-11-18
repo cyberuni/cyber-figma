@@ -11,11 +11,11 @@ When the user points at a Figma file or a specific frame and wants to know what 
 
 Not for exporting images — use **export-figma-assets** for that.
 
-## Ensure cyber-figma CLI
+## Run the cyber-figma CLI
 
-See the **Ensure cyber-figma CLI** section of the **init-figma** skill. If `FIGMA_ACCESS_TOKEN` is unset, run **init-figma** first.
+Run every `cyber-figma` command through the forwarder in this skill's folder, `node <this skill's folder>/scripts/cyber-figma.mjs <args>`. If `FIGMA_ACCESS_TOKEN` is unset, run **init-figma** first.
 
-If a command below exits `2` (usage error), the spelling has moved — confirm it with `cyber-figma --help` and `cyber-figma <resource> --help` rather than guessing. The global flags (`--token`, `--team`, `--toon`, `--json`, `--full`) and the exit codes are stable.
+If a command below exits `2` (usage error), the spelling has moved — confirm it with `node <this skill's folder>/scripts/cyber-figma.mjs --help` and `node <this skill's folder>/scripts/cyber-figma.mjs <resource> --help` rather than guessing. The global flags (`--token`, `--team`, `--toon`, `--json`, `--full`) and the exit codes are stable.
 
 ## The one rule that matters
 
@@ -50,7 +50,7 @@ Note that `node-id` in a URL is dash-separated (`12-345`) while the API uses a c
 ### 2. Start with metadata
 
 ```bash
-cyber-figma file meta <file-key> --toon
+node <this skill's folder>/scripts/cyber-figma.mjs file meta <file-key> --toon
 ```
 
 Cheap (tier 3), and it answers "what is this file, when did it change, what access do I have" — often the whole question. `version` and `last_touched_at` are also the cheap way to check whether anything changed since a previous run.
@@ -60,8 +60,8 @@ Cheap (tier 3), and it answers "what is this file, when did it change, what acce
 ### 3. Map the structure with depth, not with everything
 
 ```bash
-cyber-figma file get <file-key> --depth 1 --toon   # pages
-cyber-figma file get <file-key> --depth 2 --toon   # pages + top-level frames
+node <this skill's folder>/scripts/cyber-figma.mjs file get <file-key> --depth 1 --toon   # pages
+node <this skill's folder>/scripts/cyber-figma.mjs file get <file-key> --depth 2 --toon   # pages + top-level frames
 ```
 
 Read the node ids out of that output and use them in the next step. Do not go deeper than needed — `depth` is what keeps a large file from returning a payload that times out. Very large files commonly return `400` or `500` on timeout when fetched whole; that is a size problem, not a bug, and the fix is a narrower request.
@@ -69,7 +69,7 @@ Read the node ids out of that output and use them in the next step. Do not go de
 ### 4. Fetch only the nodes you care about
 
 ```bash
-cyber-figma node get <file-key> --ids <node-id>[,<node-id>...] --toon
+node <this skill's folder>/scripts/cyber-figma.mjs node get <file-key> --ids <node-id>[,<node-id>...] --toon
 ```
 
 Batch every node id you need into **one** call. The response is a map keyed by node id, so a batch costs the same one tier-1 request as a single node.
@@ -83,8 +83,8 @@ If the response carries a non-empty `err` field, read it — it names what went 
 These are separate, much cheaper (tier 3) endpoints, and they return **only published library content** — not every component instance in the file:
 
 ```bash
-cyber-figma component list --file <file-key> --toon
-cyber-figma style list --file <file-key> --toon
+node <this skill's folder>/scripts/cyber-figma.mjs component list --file <file-key> --toon
+node <this skill's folder>/scripts/cyber-figma.mjs style list --file <file-key> --toon
 ```
 
 Two constraints worth stating to the user when the result is empty:
@@ -95,13 +95,13 @@ Two constraints worth stating to the user when the result is empty:
 For the whole team's library instead of one file, use the team-scoped form (paginated):
 
 ```bash
-cyber-figma component list --team <team-id> --toon
+node <this skill's folder>/scripts/cyber-figma.mjs component list --team <team-id> --toon
 ```
 
 ### 6. Comments, when the question is "what did people say"
 
 ```bash
-cyber-figma comment list <file-key> --toon
+node <this skill's folder>/scripts/cyber-figma.mjs comment list <file-key> --toon
 ```
 
 Tier 2, unpaginated — the full comment list comes back at once.

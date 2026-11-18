@@ -14,6 +14,11 @@
 		"org.cyberuni.universal-plugin": {
 			"vendors": ["claude-code", "cursor", "codex", "copilot-cli"],
 			"skills": "./skills/",
+			"scripts": {
+				"skills/init-figma/scripts/cyber-figma.mjs": { "forward": "cyber-figma" },
+				"skills/inspect-figma-file/scripts/cyber-figma.mjs": { "forward": "cyber-figma" },
+				"skills/export-figma-assets/scripts/cyber-figma.mjs": { "forward": "cyber-figma" }
+			},
 			"harnesses": {
 				"claude-code": {
 					"displayName": "Cyber Figma"

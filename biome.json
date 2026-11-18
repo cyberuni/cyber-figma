@@ -9,7 +9,9 @@
 			"!skills-lock.json",
 			"!.agents",
 			"!**/.astro",
-			"!.cyberfleet"
+			"!.cyberfleet",
+			"!.github/scripts/min-release-age.mjs",
+			"!packages/cyber-figma/skills/*/scripts/cyber-figma.mjs"
 		]
 	},
 	"overrides": [
