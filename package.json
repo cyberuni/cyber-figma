@@ -14,7 +14,7 @@
 		"test": "turbo run test",
 		"typecheck": "turbo run typecheck",
 		"verify": "pnpm check && pnpm check-version && turbo run build typecheck test && pnpm knip",
-		"version": "changeset version && node scripts/sync-plugin-version.mjs",
+		"version": "changeset version && universal-plugin plugin version --from-package --root packages/cyber-figma",
 		"web": "turbo run --filter=@cyberuni/web"
 	},
 	"devDependencies": {

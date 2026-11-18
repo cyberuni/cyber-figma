@@ -56,7 +56,9 @@ Everything the plugin needs lives in `packages/cyber-figma/` and must stay liste
 | `.codex-plugin/plugin.json` | Codex |
 | `skills/<name>/SKILL.md` | All of them (fixed location) |
 
-`.claude-plugin/marketplace.json` at the **repo root** lists the plugin with an `npm` source. Version bumps flow from `packages/cyber-figma/package.json` through `scripts/sync-plugin-version.mjs` on `pnpm version` — add any new versioned manifest to that script's list. `mcp.json` and `.mcp.json` are not in it because they carry no `version` field.
+A skill runs the CLI as `node <this skill's folder>/scripts/cyber-figma.mjs <args>`. That file is a forwarder `plugin build` writes from the skill's entry under `extensions["org.cyberuni.universal-plugin"].scripts` in `plugin.json`: edit the entry, never the file. A new skill that runs the CLI gets its own entry, because a skill folder can be installed on its own. `pnpm check` fails when a forwarder is missing or stale.
+
+`.claude-plugin/marketplace.json` at the **repo root** lists the plugin with an `npm` source. Version bumps flow from `packages/cyber-figma/package.json` through `universal-plugin plugin version --from-package` on `pnpm version`, which stamps `plugin.json`, the vendor manifests, the repo-root catalog, and each skill's CLI forwarder. `packages/cyber-figma/.agents/universal-plugin.json` declares `packagePath: "."`, which is what tells universal-plugin the plugin ships to that package.
 
 Only `${PLUGIN_ROOT}` and `${PLUGIN_DATA}` expand in `mcp.json`; never put a `"${SOME_VAR}"` value in its `env`, as it arrives literally and shadows the real variable.
 
