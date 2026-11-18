@@ -9,27 +9,15 @@ description: Use this skill when setting up cyber-figma — personal access toke
 
 When the user is setting up `cyber-figma` for the first time, or when commands fail with auth, permission, or "team id required" errors.
 
-## Ensure cyber-figma CLI
+## Run the cyber-figma CLI
 
-Before running any `cyber-figma` command, settle how to invoke it — once, in this order. Whichever form resolves is what every `cyber-figma <subcommand>` in this skill and all other cyber-figma skills means.
+Run every `cyber-figma` command through the forwarder in this skill's folder:
 
-1. **Shipped CLI (preferred).** When these skills came from an installed `cyber-figma` plugin or npm package, the CLI ships beside them and is bundled with its dependencies inlined, so it needs no install and no network:
+```bash
+node <this skill's folder>/scripts/cyber-figma.mjs --version
+```
 
-   ```bash
-   node <cyber-figma-root>/skills/init-figma/scripts/cyber-figma.mjs --version
-   ```
-
-   `<cyber-figma-root>` is the package root, four levels up from that script; from another cyber-figma skill's own directory the same launcher is `../init-figma/scripts/cyber-figma.mjs`. If it prints a version, use it for every later command and skip the rest of this section.
-2. **Global install** — `cyber-figma --version`. If that succeeds, use the bare `cyber-figma` spelling.
-3. **npx fallback** — resolve the latest published semver with `npm view cyber-figma version` and use it as `<exact>` for every `npx cyber-figma@<exact>` (never `@latest`, never a literal placeholder). Check with `npx cyber-figma@<exact> --version`.
-
-If only the npx path is left and it fails (install prompt, `command not found`, or other non-zero exit):
-
-1. Tell the user the workflow needs to download `cyber-figma` from npm (no `package.json` change).
-2. **Ask** whether to install.
-3. After yes, run the one-time install only: `npx --yes cyber-figma@<exact> --version`
-4. For all later commands, use `npx cyber-figma@<exact> <subcommand>` (no `--yes`) or `cyber-figma` if globally installed.
-5. If the user declines npx, ask whether to add `cyber-figma` as a devDependency instead. Note drawbacks: it modifies `package.json` and may need ignoring in unused-dependency tools (e.g. `knip`). If they decline both, skip CLI steps.
+It runs the CLI of a cyber-figma checkout when this skill sits inside one, and otherwise the published `cyber-figma` package, at the version this plugin ships, through `npx`. The first run outside a checkout downloads that package from npm.
 
 ## Global flags and exit codes
 
@@ -56,7 +44,7 @@ Exit codes are stable; branch on them rather than on message text:
 | `6` | rate limited (`429`) |
 | `7` | plan-gated — the endpoint needs Enterprise (see step 6) |
 
-For the exact resource commands and their flags, run `cyber-figma --help` and `cyber-figma <resource> --help`.
+For the exact resource commands and their flags, run `node <this skill's folder>/scripts/cyber-figma.mjs --help` and `node <this skill's folder>/scripts/cyber-figma.mjs <resource> --help`.
 
 ## Instructions
 
@@ -102,12 +90,10 @@ A token never exceeds the user's own Figma permissions, so request the narrowest
 
 ### 3. Verify the connection
 
-Ensure the CLI is available first (see **Ensure cyber-figma CLI**), then run:
+Run:
 
 ```bash
-cyber-figma user me --toon
-# or, if using npx without global install:
-npx cyber-figma@<exact> user me --toon
+node <this skill's folder>/scripts/cyber-figma.mjs user me --toon
 ```
 
 This calls `GET /v1/me` and prints the authenticated user. (`--toon` is the token-efficient format; use `--json` for raw JSON.)
@@ -134,7 +120,7 @@ export FIGMA_TEAM_ID=<team-id>
 This avoids passing `--team` on every team-scoped command. Verify:
 
 ```bash
-cyber-figma project list --toon
+node <this skill's folder>/scripts/cyber-figma.mjs project list --toon
 ```
 
 That lists the projects visible to the token holder in that team.
@@ -142,7 +128,7 @@ That lists the projects visible to the token holder in that team.
 ### 5. Confirm setup
 
 ```bash
-cyber-figma file meta <file-key>
+node <this skill's folder>/scripts/cyber-figma.mjs file meta <file-key>
 ```
 
 The file key is the segment after `/design/` (or the older `/file/`) in any Figma file URL. A successful metadata read confirms token, scopes, and file access together — and it is the cheapest call in the API (rate-limit tier 3), so it is the safe thing to retry with.

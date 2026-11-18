@@ -10,7 +10,8 @@
 			"!.agents",
 			"!**/.astro",
 			"!.cyberfleet",
-			"!.github/scripts/min-release-age.mjs"
+			"!.github/scripts/min-release-age.mjs",
+			"!packages/cyber-figma/skills/*/scripts/cyber-figma.mjs"
 		]
 	},
 	"overrides": [
