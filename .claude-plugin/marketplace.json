@@ -22,7 +22,7 @@
 			"license": "MIT",
 			"category": "design",
 			"keywords": ["figma", "mcp", "cli", "agent", "design"],
-			"version": "0.2.0"
+			"version": "0.2.1"
 		}
 	]
 }
